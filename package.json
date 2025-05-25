@@ -1,0 +1,55 @@
+{
+  "name": "ninesport-js-utils",
+  "version": "1.0.0",
+  "description": "Ninesport JS Utils",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "jest",
+    "build": "tsc",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ninesport/ninesport-js-utils.git"
+  },
+  "author": "ninesport",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Ninesport/ninesport-js-utils/issues"
+  },
+  "homepage": "https://github.com/Ninesport/ninesport-js-utils#readme",
+  "dependencies": {
+    "decimal.js": "^10.5.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.14",
+    "@types/node": "^22.15.21",
+    "@typescript-eslint/eslint-plugin": "^8.32.1",
+    "@typescript-eslint/parser": "^8.32.1",
+    "csv-parse": "^5.6.0",
+    "eslint": "^9.27.0",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-unused-imports": "^4.1.4",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.3.4",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.32.1"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./price": {
+      "import": "./dist/price.js",
+      "types": "./dist/price.d.ts"
+    }
+  }
+}
