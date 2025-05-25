@@ -1,6 +1,6 @@
 {
   "name": "ninesport-js-utils",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Ninesport JS Utils",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -12,7 +12,8 @@
     "test": "jest",
     "build": "tsc",
     "lint": "eslint . --ext .ts,.tsx",
-    "lint:fix": "eslint . --ext .ts,.tsx --fix"
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "publish": "yarn test && yarn build && npm publish"
   },
   "repository": {
     "type": "git",
