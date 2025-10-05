@@ -1,6 +1,6 @@
 {
   "name": "ninesport-js-utils",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Ninesport JS Utils",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -25,8 +25,8 @@
     "url": "https://github.com/Ninesport/ninesport-js-utils/issues"
   },
   "homepage": "https://github.com/Ninesport/ninesport-js-utils#readme",
-  "dependencies": {
-    "decimal.js": "^10.5.0"
+  "peerDependencies": {
+    "decimal.js": ">=10.0.0 <12.0.0"
   },
   "devDependencies": {
     "@types/jest": "^29.5.14",
@@ -51,6 +51,10 @@
     "./price": {
       "import": "./dist/price.js",
       "types": "./dist/price.d.ts"
+    },
+    "./events-utils": {
+      "import": "./dist/events-utils.js",
+      "types": "./dist/events-utils.d.ts"
     }
   }
 }
