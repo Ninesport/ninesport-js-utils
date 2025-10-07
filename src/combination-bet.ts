@@ -8,7 +8,7 @@ const MAX_FOLD_SIZE = 30
  * Represents the parameters for a single part of a combination bet.
  * e.g., for a "System 2/4", one parameter would be { foldSize: 4, combSelectNum: 2 }
  */
-interface CombinationBetParameter {
+export interface CombinationBetParameter {
   foldSize: number;
   combSelectNum: number;
 }
@@ -16,7 +16,7 @@ interface CombinationBetParameter {
 /**
  * Represents a specific combination betting option, like "Single", "Double", "Treble", or "System 2/4".
  */
-interface CombinationBetOption {
+export interface CombinationBetOption {
   id: string;
   // 就是選擇的bets數量
   foldSize: number;
