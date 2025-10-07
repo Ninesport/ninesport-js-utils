@@ -12,6 +12,22 @@ yarn add ninesport-js-utils decimal.js
 
 由於此套件內部使用 `decimal.js` 進行高精度計算，因此您需要在您的專案中將其列為 `peerDependency`。
 
+### TypeScript 使用須知
+
+本套件採用了現代的 `package.json` `exports` 欄位，以支援更優化的模組解析 (例如 `import ... from 'ninesport-js-utils/price'`)。
+
+為了讓 TypeScript 能夠正確解析這些路徑的型別，請確保您專案的 `tsconfig.json` 中，`compilerOptions` 的 `moduleResolution` 設定為 `'bundler'`。
+
+**範例 `tsconfig.json` 設定:**
+```json
+{
+  "compilerOptions": {
+    "module": "esnext",
+    "moduleResolution": "bundler"
+  }
+}
+```
+
 ## API 文件
 
 ### `getCombinationBetReferenceTable`
