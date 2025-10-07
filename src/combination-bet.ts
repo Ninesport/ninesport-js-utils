@@ -33,7 +33,7 @@ interface CombinationBetOption {
  * A reference table containing all possible combination bet options for a given number of selections (foldSize).
  * 該foldSize的所有可能的複式串關組合
  */
-interface CombinationBetReferenceTable {
+export interface CombinationBetReferenceTable {
   foldSize: number;
   options: CombinationBetOption[];
 }
@@ -167,7 +167,7 @@ export function getCombinationBetReferenceTable(foldSize: number): CombinationBe
     return table
 }
 
-type CreateOrderParams = {
+export type CreateOrderParams = {
     /** 
      * 每注下注金額
     */ 
@@ -182,7 +182,7 @@ type CreateOrderParams = {
     odds: string[]
 }
 
-type StakeAndPayout = {
+export type StakeAndPayout = {
     /**
      等效總賠率(可能會有無窮小數)
     */

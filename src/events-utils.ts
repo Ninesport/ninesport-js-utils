@@ -1,23 +1,23 @@
-interface IFixture {
+export interface IFixture {
     id: string
     leagueId: string
     leagueLocalName: string
 }
 
-interface IBet {
+export interface IBet {
     id: string
 }
 
-interface IMarket {
+export interface IMarket {
     id: string
     bets: IBet[][]
 }
 
-interface ILivescore {
+export interface ILivescore {
     id: string
 }
 
-interface IEvent<F extends IFixture, M extends IMarket, L extends ILivescore> {
+export interface IEvent<F extends IFixture, M extends IMarket, L extends ILivescore> {
     fixture: F
     markets?: M[] | null
     livescore?: L | null
@@ -31,7 +31,7 @@ enum SubscriptionMessageType {
     deleteEvents = "deleteEvents",
     deleteMarkets = "deleteMarkets",
 }
-interface IEventsWithLeagueGroup<F extends IFixture, M extends IMarket, L extends ILivescore> {
+export interface IEventsWithLeagueGroup<F extends IFixture, M extends IMarket, L extends ILivescore> {
     leagueId: string
     leagueLocalName: string
     eventsCount: number
@@ -39,7 +39,7 @@ interface IEventsWithLeagueGroup<F extends IFixture, M extends IMarket, L extend
     events: IEvent<F, M, L>[]
 }
 
-interface IEventSubscription<F extends IFixture, M extends IMarket, L extends ILivescore> {
+export interface IEventSubscription<F extends IFixture, M extends IMarket, L extends ILivescore> {
     type: string
     fixtureId: string
     fixture?: F
