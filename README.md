@@ -129,14 +129,14 @@ reduceEventSubscriptions<F, M, L>(data: IEventsWithLeagueGroup<F, M, L>[], event
 ### 函數簽名
 
 ```typescript
-import { PriceType, toPrice } from "./src/price"; // 根據您的專案結構調整路徑
+import { PriceType, toPrice } from "ninesport-js-utils/price";
 
 /**
  * @param valueString The ratio string to convert, 這個就是後端收到的Ratio(string).
  * @param priceType The type of price to convert to, 指定前端要顯示的PriceType.
  * @returns The formatted Price string.
  */
-export function toPrice(valueString: string, priceType: PriceType): string;
+function toPrice(valueString: string, priceType: PriceType): string;
 ```
 
 ### 參數說明
@@ -166,7 +166,7 @@ export enum PriceType {
 您可以使用 `priceTypeToString(p: PriceType): string` 來獲取 `PriceType` 對應的顯示名稱：
 
 ```typescript
-import { priceTypeToString, PriceType } from "./src/price";
+import { priceTypeToString, PriceType } from "ninesport-js-utils/price";
 
 console.log(priceTypeToString(PriceType.DECIMAL)); // "Decimal"
 console.log(priceTypeToString(PriceType.MONEY_LINE)); // "Money Line"
@@ -178,7 +178,7 @@ console.log(priceTypeToString(PriceType.MONEY_LINE)); // "Money Line"
 以下範例展示了如何使用 `toPrice` 函數將一個小數賠率 "1.01" 轉換為所有支援的賠率格式。此範例參考了 `tests/price.test.ts` 中的測試邏輯。
 
 ```typescript
-import { PriceType, toPrice } from "./src/price"; // 根據您的專案結構調整路徑
+import { PriceType, toPrice } from "ninesport-js-utils/price"; // 根據您的專案結構調整路徑
 
 const decimalOddsString = "1.01";
 
