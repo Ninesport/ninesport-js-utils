@@ -114,6 +114,52 @@ console.log(`等效總賠率: ${result.totalOdds.toFixed(4)}`); // 2.4231
 
 ---
 
+### `calculateEquivalentOddsFromBetOption`
+
+此函式用於計算給定一組賠率和一個可選的複式串關選項的「等效賠率」。它支援單注、普通串關和複式串關。
+
+所謂「等效賠率」是指在所有組合中，每單位賭注的平均賠付率。
+
+**簽名**
+```typescript
+calculateEquivalentOddsFromBetOption(odds: string[], combinationBetOption?: CombinationBetOption): Decimal
+```
+
+**參數**
+- `odds` (`string[]`): 一個包含所有選項賠率的字串陣列。
+- `combinationBetOption` (`CombinationBetOption`, 可選): 複式串關的選項物件。如果此欄位留空，則會根據 `odds` 的長度自動判斷為單注（長度為 1）或普通串關（長度大於 1）。此物件可從 `getCombinationBetReferenceTable` 的回傳值中取得。
+
+**回傳值**
+
+一個 `Decimal` 物件，代表計算出的等效賠率。
+- 對於單注或普通串關，回傳值是所有賠率的乘積。
+- 對於複式串關，回傳值是所有組合的賠率乘積總和除以總組合數。
+
+**範例**
+
+```typescript
+import { 
+  calculateEquivalentOddsFromBetOption, 
+  getCombinationBetReferenceTable 
+} from 'ninesport-js-utils/combination-bet';
+
+// 範例 1: 普通串關 (3串1)
+const parlayOdds = calculateEquivalentOddsFromBetOption(["1.5", "2.0", "1.2"]);
+console.log(parlayOdds.toString()); // "3.6" (1.5 * 2.0 * 1.2)
+
+// 範例 2: 複式串關 (System 2/3)
+// 首先，獲取 3 個投注的所有複式選項
+const table = getCombinationBetReferenceTable(3);
+// 從中找到 System 2/3 (Doubles) 的選項，其 combinationCount 為 3
+const system2Of3Option = table.options.find(opt => opt.combinationCount === 3);
+
+const systemOdds = calculateEquivalentOddsFromBetOption(["1.5", "2.0", "3.0"], system2Of3Option);
+// 計算方式: ((1.5 * 2.0) + (1.5 * 3.0) + (2.0 * 3.0)) / 3 = (3 + 4.5 + 6) / 3 = 13.5 / 3
+console.log(systemOdds.toString()); // "4.5"
+```
+
+---
+
 ### `reduceEventSubscriptions`
 
 此函式是一個 Reducer，專門用於處理來自 WebSocket 的即時賽事更新。它接收目前的賽事資料狀態和一系列的更新訊息，並回傳一個新的、已更新的狀態，適用於 React、Vue 等前端框架的狀態管理。

@@ -68,7 +68,12 @@ function createCombinationBetReferenceTable(lastID: number, foldSize: number): [
             foldSize,
             combinationCount: count,
             parameters: params,
-            fallbackName: function() { return `${this.foldSize}X${this.combinationCount}` },
+            fallbackName: function() { 
+                if (this.parameters.length === 1) {
+                    return `System ${this.parameters[0].combSelectNum}/${this.foldSize}`
+                }
+                return `${this.foldSize}X${this.combinationCount}` 
+            },
         }
         return option
     }
@@ -96,13 +101,15 @@ function createCombinationBetReferenceTable(lastID: number, foldSize: number): [
     const last1Params: CombinationBetParameter[] = []
     let last1Count = 0
 
-    for (let combSelectNum = 2; combSelectNum < foldSize; combSelectNum++) {
-        lastID++
+    for (let combSelectNum = 2; combSelectNum <= foldSize; combSelectNum++) {
         const combinationCount = combinations(foldSize, combSelectNum)
         const param: CombinationBetParameter = { foldSize, combSelectNum }
     
-        const option = createOption(lastID.toString(), combinationCount, [param])
-        output.options.push(option)
+        if (combSelectNum !== foldSize) {
+            lastID++
+            const option = createOption(lastID.toString(), combinationCount, [param])
+            output.options.push(option)
+        }
 
         last2Params.push(param)
         last2Count += combinationCount
@@ -141,6 +148,9 @@ function initCombinationBetReferenceTableMap() {
         combinationBetReferenceTablesMap.set(foldSize, table)
 
         for (const opt of table.options) {
+            if (combinationBetOptionsMap.has(opt.id)) {
+                throw new Error(`CombinationBetOption with id ${opt.id} already exists`)
+            }
             combinationBetOptionsMap.set(opt.id, opt)
         }
     }
@@ -197,6 +207,77 @@ export type StakeAndPayout = {
     maxPayout: Decimal
 }
 
+
+/**
+  
+* 計算給定一組賠率和一個可選組合投注選項的加總賠率(沒有除以combinationCount)。
+*
+* @param odds 一個字串數組，表示每個選項的賠率。
+* @param combinationBetOption 一個可選的組合投注選項 (CombinationBetOption) 物件。如果提供，則指定
+* 賠率的組合方式（例如，系統投注）。
+* 如果未提供，則預設為單注（如果 odds.length 為 1）
+* 或過關投注（如果 odds.length > 1）。
+* @returns 一個 Decimal 對象，表示所選組合的積總和。
+* @throws 如果賠率數量與組合投注選項 (combinationBetOption) 的 foldSize 不匹配，
+* 或未提供組合投注選項 (combinationBetOption) 時賠率數組為空，則拋出錯誤。
+
+*/
+function calculateEquivalentOddsWithoutDivFromBetOption(odds: string[], combinationBetOption?: CombinationBetOption): Decimal {
+    if (combinationBetOption && combinationBetOption.foldSize !== odds.length) {
+        throw new Error(`The number of odds (${odds.length}) must match the foldSize of the combinationBetOption (${combinationBetOption.foldSize}).`)
+    }
+
+    if (!combinationBetOption) {
+        if (odds.length === 1) {
+            // single bet
+            return new Decimal(odds[0])
+        } else if (odds.length > 1) {
+            // parlay
+            const oddsInDecimal = odds.map(odd => new Decimal(odd))
+            const eqOddsWithoutDiv = calculateEquivalentOddsWithoutDiv(oddsInDecimal, oddsInDecimal.length)
+            return eqOddsWithoutDiv                
+        } else {
+            throw new Error("odds length cannot be 0")
+            
+        }
+    } 
+
+    let totalEquivalentOdds = new Decimal(0)
+    const oddsInDecimal = odds.map(odd => new Decimal(odd))
+    combinationBetOption.parameters.forEach(p => {
+        const eqOddsWithoutDiv = calculateEquivalentOddsWithoutDiv(oddsInDecimal, p.combSelectNum)
+        totalEquivalentOdds = totalEquivalentOdds.add(eqOddsWithoutDiv)
+    })
+
+    return totalEquivalentOdds
+}
+
+/**
+  
+* 計算給定一組賠率和一個可選組合投注選項的等效賠率。
+*
+* @param odds 一個字串數組，表示每個選項的賠率。
+* @param combinationBetOption 一個可選的組合投注選項 (CombinationBetOption) 物件。如果沒有提供，程式會自行判斷是串關還是單注。
+* @returns 回傳等效賠率。
+* @throws 如果賠率數量與組合投注選項 (combinationBetOption) 的 foldSize 不匹配，
+* 或未提供組合投注選項 (combinationBetOption) 時賠率數組為空，則拋出錯誤。
+
+*/
+export function calculateEquivalentOddsFromBetOption(odds: string[], combinationBetOption?: CombinationBetOption): Decimal {
+    
+    const oddsWithoutDiv = calculateEquivalentOddsWithoutDivFromBetOption(odds, combinationBetOption)
+    if (!combinationBetOption) {
+        // combinationCount必定為1
+        return oddsWithoutDiv
+    }
+
+    if (combinationBetOption.combinationCount === 0) {
+        throw new Error("combinationCount cannot be 0")
+    }
+
+    return oddsWithoutDiv.div(combinationBetOption.combinationCount)
+}
+
 /**
  * 
  * 計算總下注金額和最大賠付
@@ -211,37 +292,20 @@ export function calculateTotalStakeAndMaxPayout(inputs: CreateOrderParams[]): St
     for (const input of inputs) {
         const { perStakeAmount, combinationBetOptionId, odds } = input
         const perStakeAmountInDecimal = new Decimal(perStakeAmount)
-        if (!combinationBetOptionId) {
-            if (odds.length === 1) {
-                // single bet
-                totalStake = totalStake.add(perStakeAmountInDecimal)
-                maxPayout = maxPayout.add(perStakeAmountInDecimal.mul(new Decimal(odds[0])))
-                continue
-            } else if (odds.length > 1) {
-                // parlay
-                totalStake = totalStake.add(perStakeAmountInDecimal)
-                const oddsInDecimal = odds.map(odd => new Decimal(odd))
-                const eqOddsWithoutDiv = calculateEquivalentOddsWithoutDiv(oddsInDecimal, oddsInDecimal.length)
-                maxPayout = maxPayout.add(perStakeAmountInDecimal.mul(eqOddsWithoutDiv))
-                continue
+        let combinationBetOption: CombinationBetOption | undefined
 
-                
-            } else {
-                throw new Error("odds length cannot be 0")
-                
-            }
-        } else {
-            const betOption = combinationBetOptionsMap.get(combinationBetOptionId)
-            if (!betOption) {
+        if (combinationBetOptionId) {
+            combinationBetOption = combinationBetOptionsMap.get(combinationBetOptionId)
+            if (!combinationBetOption) {
                 throw new Error(`CombinationBetOption with id ${combinationBetOptionId} not found`)
             }
-            const oddsInDecimal = odds.map(odd => new Decimal(odd))
-            betOption.parameters.forEach(p => {
-                const eqOddsWithoutDiv = calculateEquivalentOddsWithoutDiv(oddsInDecimal, p.combSelectNum)
-                maxPayout = maxPayout.add(perStakeAmountInDecimal.mul(eqOddsWithoutDiv))
-            })
-            totalStake = totalStake.add(perStakeAmountInDecimal.mul(betOption.combinationCount))
+            
+               
         }
+        const equivalentOddsWithoutDiv = calculateEquivalentOddsWithoutDivFromBetOption(odds, combinationBetOption)
+        maxPayout = maxPayout.add(perStakeAmountInDecimal.mul(equivalentOddsWithoutDiv))
+        totalStake = totalStake.add(perStakeAmountInDecimal.mul(combinationBetOption?.combinationCount ?? 1))
+        continue
 
     }
 

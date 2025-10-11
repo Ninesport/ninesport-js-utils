@@ -1,5 +1,6 @@
 import { getCombinationBetReferenceTable } from "../src/combination-bet"
 
+// generated from golang
 const expectedData = [
     {
         "FoldSize": 3,
@@ -29,22 +30,30 @@ const expectedData = [
             {
                 "ID": 5,
                 "FoldSize": 3,
-                "CombinationCount": 3,
+                "CombinationCount": 4,
                 "Parameters": [
                     {
                         "FoldSize": 3,
                         "CombSelectNum": 2,
+                    },
+                    {
+                        "FoldSize": 3,
+                        "CombSelectNum": 3,
                     },
                 ],
             },
             {
                 "ID": 6,
                 "FoldSize": 3,
-                "CombinationCount": 6,
+                "CombinationCount": 7,
                 "Parameters": [
                     {
                         "FoldSize": 3,
                         "CombSelectNum": 2,
+                    },
+                    {
+                        "FoldSize": 3,
+                        "CombSelectNum": 3,
                     },
                     {
                         "FoldSize": 3,
@@ -93,7 +102,7 @@ const expectedData = [
             {
                 "ID": 10,
                 "FoldSize": 4,
-                "CombinationCount": 10,
+                "CombinationCount": 11,
                 "Parameters": [
                     {
                         "FoldSize": 4,
@@ -102,13 +111,17 @@ const expectedData = [
                     {
                         "FoldSize": 4,
                         "CombSelectNum": 3,
+                    },
+                    {
+                        "FoldSize": 4,
+                        "CombSelectNum": 4,
                     },
                 ],
             },
             {
                 "ID": 11,
                 "FoldSize": 4,
-                "CombinationCount": 14,
+                "CombinationCount": 15,
                 "Parameters": [
                     {
                         "FoldSize": 4,
@@ -117,6 +130,10 @@ const expectedData = [
                     {
                         "FoldSize": 4,
                         "CombSelectNum": 3,
+                    },
+                    {
+                        "FoldSize": 4,
+                        "CombSelectNum": 4,
                     },
                     {
                         "FoldSize": 4,
@@ -176,7 +193,7 @@ const expectedData = [
             {
                 "ID": 16,
                 "FoldSize": 5,
-                "CombinationCount": 25,
+                "CombinationCount": 26,
                 "Parameters": [
                     {
                         "FoldSize": 5,
@@ -189,13 +206,17 @@ const expectedData = [
                     {
                         "FoldSize": 5,
                         "CombSelectNum": 4,
+                    },
+                    {
+                        "FoldSize": 5,
+                        "CombSelectNum": 5,
                     },
                 ],
             },
             {
                 "ID": 17,
                 "FoldSize": 5,
-                "CombinationCount": 30,
+                "CombinationCount": 31,
                 "Parameters": [
                     {
                         "FoldSize": 5,
@@ -208,6 +229,10 @@ const expectedData = [
                     {
                         "FoldSize": 5,
                         "CombSelectNum": 4,
+                    },
+                    {
+                        "FoldSize": 5,
+                        "CombSelectNum": 5,
                     },
                     {
                         "FoldSize": 5,
@@ -278,7 +303,7 @@ const expectedData = [
             {
                 "ID": 23,
                 "FoldSize": 6,
-                "CombinationCount": 56,
+                "CombinationCount": 57,
                 "Parameters": [
                     {
                         "FoldSize": 6,
@@ -295,13 +320,17 @@ const expectedData = [
                     {
                         "FoldSize": 6,
                         "CombSelectNum": 5,
+                    },
+                    {
+                        "FoldSize": 6,
+                        "CombSelectNum": 6,
                     },
                 ],
             },
             {
                 "ID": 24,
                 "FoldSize": 6,
-                "CombinationCount": 62,
+                "CombinationCount": 63,
                 "Parameters": [
                     {
                         "FoldSize": 6,
@@ -318,6 +347,10 @@ const expectedData = [
                     {
                         "FoldSize": 6,
                         "CombSelectNum": 5,
+                    },
+                    {
+                        "FoldSize": 6,
+                        "CombSelectNum": 6,
                     },
                     {
                         "FoldSize": 6,
@@ -399,7 +432,7 @@ const expectedData = [
             {
                 "ID": 31,
                 "FoldSize": 7,
-                "CombinationCount": 119,
+                "CombinationCount": 120,
                 "Parameters": [
                     {
                         "FoldSize": 7,
@@ -420,13 +453,17 @@ const expectedData = [
                     {
                         "FoldSize": 7,
                         "CombSelectNum": 6,
+                    },
+                    {
+                        "FoldSize": 7,
+                        "CombSelectNum": 7,
                     },
                 ],
             },
             {
                 "ID": 32,
                 "FoldSize": 7,
-                "CombinationCount": 126,
+                "CombinationCount": 127,
                 "Parameters": [
                     {
                         "FoldSize": 7,
@@ -447,6 +484,10 @@ const expectedData = [
                     {
                         "FoldSize": 7,
                         "CombSelectNum": 6,
+                    },
+                    {
+                        "FoldSize": 7,
+                        "CombSelectNum": 7,
                     },
                     {
                         "FoldSize": 7,
@@ -539,7 +580,7 @@ const expectedData = [
             {
                 "ID": 40,
                 "FoldSize": 8,
-                "CombinationCount": 246,
+                "CombinationCount": 247,
                 "Parameters": [
                     {
                         "FoldSize": 8,
@@ -564,13 +605,17 @@ const expectedData = [
                     {
                         "FoldSize": 8,
                         "CombSelectNum": 7,
+                    },
+                    {
+                        "FoldSize": 8,
+                        "CombSelectNum": 8,
                     },
                 ],
             },
             {
                 "ID": 41,
                 "FoldSize": 8,
-                "CombinationCount": 254,
+                "CombinationCount": 255,
                 "Parameters": [
                     {
                         "FoldSize": 8,
@@ -595,6 +640,10 @@ const expectedData = [
                     {
                         "FoldSize": 8,
                         "CombSelectNum": 7,
+                    },
+                    {
+                        "FoldSize": 8,
+                        "CombSelectNum": 8,
                     },
                     {
                         "FoldSize": 8,
@@ -698,7 +747,7 @@ const expectedData = [
             {
                 "ID": 50,
                 "FoldSize": 9,
-                "CombinationCount": 501,
+                "CombinationCount": 502,
                 "Parameters": [
                     {
                         "FoldSize": 9,
@@ -727,13 +776,17 @@ const expectedData = [
                     {
                         "FoldSize": 9,
                         "CombSelectNum": 8,
+                    },
+                    {
+                        "FoldSize": 9,
+                        "CombSelectNum": 9,
                     },
                 ],
             },
             {
                 "ID": 51,
                 "FoldSize": 9,
-                "CombinationCount": 510,
+                "CombinationCount": 511,
                 "Parameters": [
                     {
                         "FoldSize": 9,
@@ -762,6 +815,10 @@ const expectedData = [
                     {
                         "FoldSize": 9,
                         "CombSelectNum": 8,
+                    },
+                    {
+                        "FoldSize": 9,
+                        "CombSelectNum": 9,
                     },
                     {
                         "FoldSize": 9,
@@ -876,7 +933,7 @@ const expectedData = [
             {
                 "ID": 61,
                 "FoldSize": 10,
-                "CombinationCount": 1012,
+                "CombinationCount": 1013,
                 "Parameters": [
                     {
                         "FoldSize": 10,
@@ -909,13 +966,17 @@ const expectedData = [
                     {
                         "FoldSize": 10,
                         "CombSelectNum": 9,
+                    },
+                    {
+                        "FoldSize": 10,
+                        "CombSelectNum": 10,
                     },
                 ],
             },
             {
                 "ID": 62,
                 "FoldSize": 10,
-                "CombinationCount": 1022,
+                "CombinationCount": 1023,
                 "Parameters": [
                     {
                         "FoldSize": 10,
@@ -948,6 +1009,10 @@ const expectedData = [
                     {
                         "FoldSize": 10,
                         "CombSelectNum": 9,
+                    },
+                    {
+                        "FoldSize": 10,
+                        "CombSelectNum": 10,
                     },
                     {
                         "FoldSize": 10,
@@ -1073,7 +1138,7 @@ const expectedData = [
             {
                 "ID": 73,
                 "FoldSize": 11,
-                "CombinationCount": 2035,
+                "CombinationCount": 2036,
                 "Parameters": [
                     {
                         "FoldSize": 11,
@@ -1110,13 +1175,17 @@ const expectedData = [
                     {
                         "FoldSize": 11,
                         "CombSelectNum": 10,
+                    },
+                    {
+                        "FoldSize": 11,
+                        "CombSelectNum": 11,
                     },
                 ],
             },
             {
                 "ID": 74,
                 "FoldSize": 11,
-                "CombinationCount": 2046,
+                "CombinationCount": 2047,
                 "Parameters": [
                     {
                         "FoldSize": 11,
@@ -1153,6 +1222,10 @@ const expectedData = [
                     {
                         "FoldSize": 11,
                         "CombSelectNum": 10,
+                    },
+                    {
+                        "FoldSize": 11,
+                        "CombSelectNum": 11,
                     },
                     {
                         "FoldSize": 11,
@@ -1289,7 +1362,7 @@ const expectedData = [
             {
                 "ID": 86,
                 "FoldSize": 12,
-                "CombinationCount": 4082,
+                "CombinationCount": 4083,
                 "Parameters": [
                     {
                         "FoldSize": 12,
@@ -1330,13 +1403,17 @@ const expectedData = [
                     {
                         "FoldSize": 12,
                         "CombSelectNum": 11,
+                    },
+                    {
+                        "FoldSize": 12,
+                        "CombSelectNum": 12,
                     },
                 ],
             },
             {
                 "ID": 87,
                 "FoldSize": 12,
-                "CombinationCount": 4094,
+                "CombinationCount": 4095,
                 "Parameters": [
                     {
                         "FoldSize": 12,
@@ -1377,6 +1454,10 @@ const expectedData = [
                     {
                         "FoldSize": 12,
                         "CombSelectNum": 11,
+                    },
+                    {
+                        "FoldSize": 12,
+                        "CombSelectNum": 12,
                     },
                     {
                         "FoldSize": 12,
@@ -1524,7 +1605,7 @@ const expectedData = [
             {
                 "ID": 100,
                 "FoldSize": 13,
-                "CombinationCount": 8177,
+                "CombinationCount": 8178,
                 "Parameters": [
                     {
                         "FoldSize": 13,
@@ -1569,13 +1650,17 @@ const expectedData = [
                     {
                         "FoldSize": 13,
                         "CombSelectNum": 12,
+                    },
+                    {
+                        "FoldSize": 13,
+                        "CombSelectNum": 13,
                     },
                 ],
             },
             {
                 "ID": 101,
                 "FoldSize": 13,
-                "CombinationCount": 8190,
+                "CombinationCount": 8191,
                 "Parameters": [
                     {
                         "FoldSize": 13,
@@ -1620,6 +1705,10 @@ const expectedData = [
                     {
                         "FoldSize": 13,
                         "CombSelectNum": 12,
+                    },
+                    {
+                        "FoldSize": 13,
+                        "CombSelectNum": 13,
                     },
                     {
                         "FoldSize": 13,
@@ -1778,7 +1867,7 @@ const expectedData = [
             {
                 "ID": 115,
                 "FoldSize": 14,
-                "CombinationCount": 16368,
+                "CombinationCount": 16369,
                 "Parameters": [
                     {
                         "FoldSize": 14,
@@ -1827,13 +1916,17 @@ const expectedData = [
                     {
                         "FoldSize": 14,
                         "CombSelectNum": 13,
+                    },
+                    {
+                        "FoldSize": 14,
+                        "CombSelectNum": 14,
                     },
                 ],
             },
             {
                 "ID": 116,
                 "FoldSize": 14,
-                "CombinationCount": 16382,
+                "CombinationCount": 16383,
                 "Parameters": [
                     {
                         "FoldSize": 14,
@@ -1882,6 +1975,10 @@ const expectedData = [
                     {
                         "FoldSize": 14,
                         "CombSelectNum": 13,
+                    },
+                    {
+                        "FoldSize": 14,
+                        "CombSelectNum": 14,
                     },
                     {
                         "FoldSize": 14,
@@ -2051,7 +2148,7 @@ const expectedData = [
             {
                 "ID": 131,
                 "FoldSize": 15,
-                "CombinationCount": 32751,
+                "CombinationCount": 32752,
                 "Parameters": [
                     {
                         "FoldSize": 15,
@@ -2104,13 +2201,17 @@ const expectedData = [
                     {
                         "FoldSize": 15,
                         "CombSelectNum": 14,
+                    },
+                    {
+                        "FoldSize": 15,
+                        "CombSelectNum": 15,
                     },
                 ],
             },
             {
                 "ID": 132,
                 "FoldSize": 15,
-                "CombinationCount": 32766,
+                "CombinationCount": 32767,
                 "Parameters": [
                     {
                         "FoldSize": 15,
@@ -2163,6 +2264,10 @@ const expectedData = [
                     {
                         "FoldSize": 15,
                         "CombSelectNum": 14,
+                    },
+                    {
+                        "FoldSize": 15,
+                        "CombSelectNum": 15,
                     },
                     {
                         "FoldSize": 15,
@@ -2343,7 +2448,7 @@ const expectedData = [
             {
                 "ID": 148,
                 "FoldSize": 16,
-                "CombinationCount": 65518,
+                "CombinationCount": 65519,
                 "Parameters": [
                     {
                         "FoldSize": 16,
@@ -2400,13 +2505,17 @@ const expectedData = [
                     {
                         "FoldSize": 16,
                         "CombSelectNum": 15,
+                    },
+                    {
+                        "FoldSize": 16,
+                        "CombSelectNum": 16,
                     },
                 ],
             },
             {
                 "ID": 149,
                 "FoldSize": 16,
-                "CombinationCount": 65534,
+                "CombinationCount": 65535,
                 "Parameters": [
                     {
                         "FoldSize": 16,
@@ -2463,6 +2572,10 @@ const expectedData = [
                     {
                         "FoldSize": 16,
                         "CombSelectNum": 15,
+                    },
+                    {
+                        "FoldSize": 16,
+                        "CombSelectNum": 16,
                     },
                     {
                         "FoldSize": 16,
@@ -2654,7 +2767,7 @@ const expectedData = [
             {
                 "ID": 166,
                 "FoldSize": 17,
-                "CombinationCount": 131053,
+                "CombinationCount": 131054,
                 "Parameters": [
                     {
                         "FoldSize": 17,
@@ -2715,13 +2828,17 @@ const expectedData = [
                     {
                         "FoldSize": 17,
                         "CombSelectNum": 16,
+                    },
+                    {
+                        "FoldSize": 17,
+                        "CombSelectNum": 17,
                     },
                 ],
             },
             {
                 "ID": 167,
                 "FoldSize": 17,
-                "CombinationCount": 131070,
+                "CombinationCount": 131071,
                 "Parameters": [
                     {
                         "FoldSize": 17,
@@ -2782,6 +2899,10 @@ const expectedData = [
                     {
                         "FoldSize": 17,
                         "CombSelectNum": 16,
+                    },
+                    {
+                        "FoldSize": 17,
+                        "CombSelectNum": 17,
                     },
                     {
                         "FoldSize": 17,
@@ -2984,7 +3105,7 @@ const expectedData = [
             {
                 "ID": 185,
                 "FoldSize": 18,
-                "CombinationCount": 262124,
+                "CombinationCount": 262125,
                 "Parameters": [
                     {
                         "FoldSize": 18,
@@ -3049,13 +3170,17 @@ const expectedData = [
                     {
                         "FoldSize": 18,
                         "CombSelectNum": 17,
+                    },
+                    {
+                        "FoldSize": 18,
+                        "CombSelectNum": 18,
                     },
                 ],
             },
             {
                 "ID": 186,
                 "FoldSize": 18,
-                "CombinationCount": 262142,
+                "CombinationCount": 262143,
                 "Parameters": [
                     {
                         "FoldSize": 18,
@@ -3120,6 +3245,10 @@ const expectedData = [
                     {
                         "FoldSize": 18,
                         "CombSelectNum": 17,
+                    },
+                    {
+                        "FoldSize": 18,
+                        "CombSelectNum": 18,
                     },
                     {
                         "FoldSize": 18,
@@ -3333,7 +3462,7 @@ const expectedData = [
             {
                 "ID": 205,
                 "FoldSize": 19,
-                "CombinationCount": 524267,
+                "CombinationCount": 524268,
                 "Parameters": [
                     {
                         "FoldSize": 19,
@@ -3402,13 +3531,17 @@ const expectedData = [
                     {
                         "FoldSize": 19,
                         "CombSelectNum": 18,
+                    },
+                    {
+                        "FoldSize": 19,
+                        "CombSelectNum": 19,
                     },
                 ],
             },
             {
                 "ID": 206,
                 "FoldSize": 19,
-                "CombinationCount": 524286,
+                "CombinationCount": 524287,
                 "Parameters": [
                     {
                         "FoldSize": 19,
@@ -3477,6 +3610,10 @@ const expectedData = [
                     {
                         "FoldSize": 19,
                         "CombSelectNum": 18,
+                    },
+                    {
+                        "FoldSize": 19,
+                        "CombSelectNum": 19,
                     },
                     {
                         "FoldSize": 19,
@@ -3701,7 +3838,7 @@ const expectedData = [
             {
                 "ID": 226,
                 "FoldSize": 20,
-                "CombinationCount": 1048554,
+                "CombinationCount": 1048555,
                 "Parameters": [
                     {
                         "FoldSize": 20,
@@ -3774,13 +3911,17 @@ const expectedData = [
                     {
                         "FoldSize": 20,
                         "CombSelectNum": 19,
+                    },
+                    {
+                        "FoldSize": 20,
+                        "CombSelectNum": 20,
                     },
                 ],
             },
             {
                 "ID": 227,
                 "FoldSize": 20,
-                "CombinationCount": 1048574,
+                "CombinationCount": 1048575,
                 "Parameters": [
                     {
                         "FoldSize": 20,
@@ -3853,6 +3994,10 @@ const expectedData = [
                     {
                         "FoldSize": 20,
                         "CombSelectNum": 19,
+                    },
+                    {
+                        "FoldSize": 20,
+                        "CombSelectNum": 20,
                     },
                     {
                         "FoldSize": 20,
@@ -4088,7 +4233,7 @@ const expectedData = [
             {
                 "ID": 248,
                 "FoldSize": 21,
-                "CombinationCount": 2097129,
+                "CombinationCount": 2097130,
                 "Parameters": [
                     {
                         "FoldSize": 21,
@@ -4165,13 +4310,17 @@ const expectedData = [
                     {
                         "FoldSize": 21,
                         "CombSelectNum": 20,
+                    },
+                    {
+                        "FoldSize": 21,
+                        "CombSelectNum": 21,
                     },
                 ],
             },
             {
                 "ID": 249,
                 "FoldSize": 21,
-                "CombinationCount": 2097150,
+                "CombinationCount": 2097151,
                 "Parameters": [
                     {
                         "FoldSize": 21,
@@ -4248,6 +4397,10 @@ const expectedData = [
                     {
                         "FoldSize": 21,
                         "CombSelectNum": 20,
+                    },
+                    {
+                        "FoldSize": 21,
+                        "CombSelectNum": 21,
                     },
                     {
                         "FoldSize": 21,
@@ -4494,7 +4647,7 @@ const expectedData = [
             {
                 "ID": 271,
                 "FoldSize": 22,
-                "CombinationCount": 4194280,
+                "CombinationCount": 4194281,
                 "Parameters": [
                     {
                         "FoldSize": 22,
@@ -4575,13 +4728,17 @@ const expectedData = [
                     {
                         "FoldSize": 22,
                         "CombSelectNum": 21,
+                    },
+                    {
+                        "FoldSize": 22,
+                        "CombSelectNum": 22,
                     },
                 ],
             },
             {
                 "ID": 272,
                 "FoldSize": 22,
-                "CombinationCount": 4194302,
+                "CombinationCount": 4194303,
                 "Parameters": [
                     {
                         "FoldSize": 22,
@@ -4662,6 +4819,10 @@ const expectedData = [
                     {
                         "FoldSize": 22,
                         "CombSelectNum": 21,
+                    },
+                    {
+                        "FoldSize": 22,
+                        "CombSelectNum": 22,
                     },
                     {
                         "FoldSize": 22,
@@ -4919,7 +5080,7 @@ const expectedData = [
             {
                 "ID": 295,
                 "FoldSize": 23,
-                "CombinationCount": 8388583,
+                "CombinationCount": 8388584,
                 "Parameters": [
                     {
                         "FoldSize": 23,
@@ -5004,13 +5165,17 @@ const expectedData = [
                     {
                         "FoldSize": 23,
                         "CombSelectNum": 22,
+                    },
+                    {
+                        "FoldSize": 23,
+                        "CombSelectNum": 23,
                     },
                 ],
             },
             {
                 "ID": 296,
                 "FoldSize": 23,
-                "CombinationCount": 8388606,
+                "CombinationCount": 8388607,
                 "Parameters": [
                     {
                         "FoldSize": 23,
@@ -5095,6 +5260,10 @@ const expectedData = [
                     {
                         "FoldSize": 23,
                         "CombSelectNum": 22,
+                    },
+                    {
+                        "FoldSize": 23,
+                        "CombSelectNum": 23,
                     },
                     {
                         "FoldSize": 23,
@@ -5363,7 +5532,7 @@ const expectedData = [
             {
                 "ID": 320,
                 "FoldSize": 24,
-                "CombinationCount": 16777190,
+                "CombinationCount": 16777191,
                 "Parameters": [
                     {
                         "FoldSize": 24,
@@ -5452,13 +5621,17 @@ const expectedData = [
                     {
                         "FoldSize": 24,
                         "CombSelectNum": 23,
+                    },
+                    {
+                        "FoldSize": 24,
+                        "CombSelectNum": 24,
                     },
                 ],
             },
             {
                 "ID": 321,
                 "FoldSize": 24,
-                "CombinationCount": 16777214,
+                "CombinationCount": 16777215,
                 "Parameters": [
                     {
                         "FoldSize": 24,
@@ -5547,6 +5720,10 @@ const expectedData = [
                     {
                         "FoldSize": 24,
                         "CombSelectNum": 23,
+                    },
+                    {
+                        "FoldSize": 24,
+                        "CombSelectNum": 24,
                     },
                     {
                         "FoldSize": 24,
@@ -5826,7 +6003,7 @@ const expectedData = [
             {
                 "ID": 346,
                 "FoldSize": 25,
-                "CombinationCount": 33554405,
+                "CombinationCount": 33554406,
                 "Parameters": [
                     {
                         "FoldSize": 25,
@@ -5919,13 +6096,17 @@ const expectedData = [
                     {
                         "FoldSize": 25,
                         "CombSelectNum": 24,
+                    },
+                    {
+                        "FoldSize": 25,
+                        "CombSelectNum": 25,
                     },
                 ],
             },
             {
                 "ID": 347,
                 "FoldSize": 25,
-                "CombinationCount": 33554430,
+                "CombinationCount": 33554431,
                 "Parameters": [
                     {
                         "FoldSize": 25,
@@ -6018,6 +6199,10 @@ const expectedData = [
                     {
                         "FoldSize": 25,
                         "CombSelectNum": 24,
+                    },
+                    {
+                        "FoldSize": 25,
+                        "CombSelectNum": 25,
                     },
                     {
                         "FoldSize": 25,
@@ -6308,7 +6493,7 @@ const expectedData = [
             {
                 "ID": 373,
                 "FoldSize": 26,
-                "CombinationCount": 67108836,
+                "CombinationCount": 67108837,
                 "Parameters": [
                     {
                         "FoldSize": 26,
@@ -6405,13 +6590,17 @@ const expectedData = [
                     {
                         "FoldSize": 26,
                         "CombSelectNum": 25,
+                    },
+                    {
+                        "FoldSize": 26,
+                        "CombSelectNum": 26,
                     },
                 ],
             },
             {
                 "ID": 374,
                 "FoldSize": 26,
-                "CombinationCount": 67108862,
+                "CombinationCount": 67108863,
                 "Parameters": [
                     {
                         "FoldSize": 26,
@@ -6508,6 +6697,10 @@ const expectedData = [
                     {
                         "FoldSize": 26,
                         "CombSelectNum": 25,
+                    },
+                    {
+                        "FoldSize": 26,
+                        "CombSelectNum": 26,
                     },
                     {
                         "FoldSize": 26,
@@ -6809,7 +7002,7 @@ const expectedData = [
             {
                 "ID": 401,
                 "FoldSize": 27,
-                "CombinationCount": 134217699,
+                "CombinationCount": 134217700,
                 "Parameters": [
                     {
                         "FoldSize": 27,
@@ -6910,13 +7103,17 @@ const expectedData = [
                     {
                         "FoldSize": 27,
                         "CombSelectNum": 26,
+                    },
+                    {
+                        "FoldSize": 27,
+                        "CombSelectNum": 27,
                     },
                 ],
             },
             {
                 "ID": 402,
                 "FoldSize": 27,
-                "CombinationCount": 134217726,
+                "CombinationCount": 134217727,
                 "Parameters": [
                     {
                         "FoldSize": 27,
@@ -7017,6 +7214,10 @@ const expectedData = [
                     {
                         "FoldSize": 27,
                         "CombSelectNum": 26,
+                    },
+                    {
+                        "FoldSize": 27,
+                        "CombSelectNum": 27,
                     },
                     {
                         "FoldSize": 27,
@@ -7329,7 +7530,7 @@ const expectedData = [
             {
                 "ID": 430,
                 "FoldSize": 28,
-                "CombinationCount": 268435426,
+                "CombinationCount": 268435427,
                 "Parameters": [
                     {
                         "FoldSize": 28,
@@ -7434,13 +7635,17 @@ const expectedData = [
                     {
                         "FoldSize": 28,
                         "CombSelectNum": 27,
+                    },
+                    {
+                        "FoldSize": 28,
+                        "CombSelectNum": 28,
                     },
                 ],
             },
             {
                 "ID": 431,
                 "FoldSize": 28,
-                "CombinationCount": 268435454,
+                "CombinationCount": 268435455,
                 "Parameters": [
                     {
                         "FoldSize": 28,
@@ -7545,6 +7750,10 @@ const expectedData = [
                     {
                         "FoldSize": 28,
                         "CombSelectNum": 27,
+                    },
+                    {
+                        "FoldSize": 28,
+                        "CombSelectNum": 28,
                     },
                     {
                         "FoldSize": 28,
@@ -7868,7 +8077,7 @@ const expectedData = [
             {
                 "ID": 460,
                 "FoldSize": 29,
-                "CombinationCount": 536870881,
+                "CombinationCount": 536870882,
                 "Parameters": [
                     {
                         "FoldSize": 29,
@@ -7977,13 +8186,17 @@ const expectedData = [
                     {
                         "FoldSize": 29,
                         "CombSelectNum": 28,
+                    },
+                    {
+                        "FoldSize": 29,
+                        "CombSelectNum": 29,
                     },
                 ],
             },
             {
                 "ID": 461,
                 "FoldSize": 29,
-                "CombinationCount": 536870910,
+                "CombinationCount": 536870911,
                 "Parameters": [
                     {
                         "FoldSize": 29,
@@ -8092,6 +8305,10 @@ const expectedData = [
                     {
                         "FoldSize": 29,
                         "CombSelectNum": 28,
+                    },
+                    {
+                        "FoldSize": 29,
+                        "CombSelectNum": 29,
                     },
                     {
                         "FoldSize": 29,
@@ -8426,7 +8643,7 @@ const expectedData = [
             {
                 "ID": 491,
                 "FoldSize": 30,
-                "CombinationCount": 1073741792,
+                "CombinationCount": 1073741793,
                 "Parameters": [
                     {
                         "FoldSize": 30,
@@ -8539,13 +8756,17 @@ const expectedData = [
                     {
                         "FoldSize": 30,
                         "CombSelectNum": 29,
+                    },
+                    {
+                        "FoldSize": 30,
+                        "CombSelectNum": 30,
                     },
                 ],
             },
             {
                 "ID": 492,
                 "FoldSize": 30,
-                "CombinationCount": 1073741822,
+                "CombinationCount": 1073741823,
                 "Parameters": [
                     {
                         "FoldSize": 30,
@@ -8658,6 +8879,10 @@ const expectedData = [
                     {
                         "FoldSize": 30,
                         "CombSelectNum": 29,
+                    },
+                    {
+                        "FoldSize": 30,
+                        "CombSelectNum": 30,
                     },
                     {
                         "FoldSize": 30,

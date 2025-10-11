@@ -8,11 +8,6 @@ const config: Config = {
     },
     moduleFileExtensions: ["ts", "js"],
     testMatch: ["**/?(*.)+(spec|test).ts"],
-    globals: {
-        "ts-jest": {
-            tsconfig: "tsconfig.json",
-        },
-    },
 }
 
 export default config
