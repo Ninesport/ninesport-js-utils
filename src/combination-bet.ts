@@ -196,7 +196,7 @@ export type StakeAndPayout = {
     /**
      等效總賠率(可能會有無窮小數)
     */
-    totalOdds: Decimal
+    equivalentOdds: Decimal
     /** 
      總下注金額(不會有無窮小數)
     */
@@ -205,6 +205,8 @@ export type StakeAndPayout = {
      預期最大賠付(不會有無窮小數)
     */
     maxPayout: Decimal
+    // 所有注單裡面是否有任何一關串關賠率 > maxBetOdds
+    isOverMaxOdds: boolean
 }
 
 
@@ -217,25 +219,27 @@ export type StakeAndPayout = {
 * 賠率的組合方式（例如，系統投注）。
 * 如果未提供，則預設為單注（如果 odds.length 為 1）
 * 或過關投注（如果 odds.length > 1）。
-* @returns 一個 Decimal 對象，表示所選組合的積總和。
+* @returns [Decimal, boolean] 一個 Decimal 對象，表示所選組合的積總和, 一個boolean: 表示是否超出單關下注賠率
 * @throws 如果賠率數量與組合投注選項 (combinationBetOption) 的 foldSize 不匹配，
 * 或未提供組合投注選項 (combinationBetOption) 時賠率數組為空，則拋出錯誤。
 
 */
-function calculateEquivalentOddsWithoutDivFromBetOption(odds: string[], combinationBetOption?: CombinationBetOption): Decimal {
+function calculateEquivalentOddsWithoutDivFromBetOption(odds: string[], maxBetOdds: string, combinationBetOption?: CombinationBetOption): [Decimal, boolean] {
     if (combinationBetOption && combinationBetOption.foldSize !== odds.length) {
         throw new Error(`The number of odds (${odds.length}) must match the foldSize of the combinationBetOption (${combinationBetOption.foldSize}).`)
     }
 
+    const maxBetOddsInDecimal = new Decimal(maxBetOdds)
+
     if (!combinationBetOption) {
         if (odds.length === 1) {
             // single bet
-            return new Decimal(odds[0])
+            const oddsInDecimal = new Decimal(odds[0])
+            return [oddsInDecimal, oddsInDecimal.gt(maxBetOddsInDecimal)]
         } else if (odds.length > 1) {
             // parlay
             const oddsInDecimal = odds.map(odd => new Decimal(odd))
-            const eqOddsWithoutDiv = calculateEquivalentOddsWithoutDiv(oddsInDecimal, oddsInDecimal.length)
-            return eqOddsWithoutDiv                
+            return calculateEquivalentOddsWithoutDiv(oddsInDecimal, maxBetOddsInDecimal, oddsInDecimal.length)
         } else {
             throw new Error("odds length cannot be 0")
             
@@ -243,13 +247,24 @@ function calculateEquivalentOddsWithoutDivFromBetOption(odds: string[], combinat
     } 
 
     let totalEquivalentOdds = new Decimal(0)
+    let isOverMaxOdds = false
     const oddsInDecimal = odds.map(odd => new Decimal(odd))
     combinationBetOption.parameters.forEach(p => {
-        const eqOddsWithoutDiv = calculateEquivalentOddsWithoutDiv(oddsInDecimal, p.combSelectNum)
+        const [eqOddsWithoutDiv, isOver] = calculateEquivalentOddsWithoutDiv(oddsInDecimal, maxBetOddsInDecimal, p.combSelectNum)
+        if (isOver) {
+            isOverMaxOdds = true
+        }
         totalEquivalentOdds = totalEquivalentOdds.add(eqOddsWithoutDiv)
     })
 
-    return totalEquivalentOdds
+    return [totalEquivalentOdds, isOverMaxOdds]
+}
+
+type EquivalentOddsFromBetOption = {
+    // 該CombinationBetOption的等效賠率
+    equivalentOdds: Decimal
+    // 該注單裡面，有沒有任何串關的賠率大於maxBetOdds
+    isOverMaxOdds: boolean
 }
 
 /**
@@ -258,24 +273,31 @@ function calculateEquivalentOddsWithoutDivFromBetOption(odds: string[], combinat
 *
 * @param odds 一個字串數組，表示每個選項的賠率。
 * @param combinationBetOption 一個可選的組合投注選項 (CombinationBetOption) 物件。如果沒有提供，程式會自行判斷是串關還是單注。
-* @returns 回傳等效賠率。
+* @returns EquivalentOddsFromBetOption: 等效賠率 有沒有任何串關的賠率大於maxBetOdds
 * @throws 如果賠率數量與組合投注選項 (combinationBetOption) 的 foldSize 不匹配，
 * 或未提供組合投注選項 (combinationBetOption) 時賠率數組為空，則拋出錯誤。
 
 */
-export function calculateEquivalentOddsFromBetOption(odds: string[], combinationBetOption?: CombinationBetOption): Decimal {
+export function calculateEquivalentOddsFromBetOption(odds: string[], maxBetOdds: string, combinationBetOption?: CombinationBetOption): EquivalentOddsFromBetOption {
     
-    const oddsWithoutDiv = calculateEquivalentOddsWithoutDivFromBetOption(odds, combinationBetOption)
+    
+    const [oddsWithoutDiv, isOverMaxOdds] = calculateEquivalentOddsWithoutDivFromBetOption(odds, maxBetOdds, combinationBetOption)
     if (!combinationBetOption) {
         // combinationCount必定為1
-        return oddsWithoutDiv
+        return {
+            equivalentOdds: oddsWithoutDiv,
+            isOverMaxOdds: isOverMaxOdds,
+        }
     }
 
     if (combinationBetOption.combinationCount === 0) {
         throw new Error("combinationCount cannot be 0")
     }
 
-    return oddsWithoutDiv.div(combinationBetOption.combinationCount)
+    return {
+        equivalentOdds: oddsWithoutDiv.div(combinationBetOption.combinationCount),
+        isOverMaxOdds: isOverMaxOdds,
+    }
 }
 
 /**
@@ -283,11 +305,13 @@ export function calculateEquivalentOddsFromBetOption(odds: string[], combination
  * 計算總下注金額和最大賠付
  * @param inputs 每個投注項的參數，包含每注金額、複式投注選項ID（可選）和賠率數組。
  
- * @returns 回傳計算出來的 賠率 下注金額 最大賠付
+ * @returns 回傳計算出來的 賠率 下注金額 最大賠付 是否任意一串關超出最大賠率
 */
-export function calculateTotalStakeAndMaxPayout(inputs: CreateOrderParams[]): StakeAndPayout {
+export function calculateTotalStakeAndMaxPayout(inputs: CreateOrderParams[], maxBetOdds: string): StakeAndPayout {
     let totalStake = new Decimal(0)
     let maxPayout = new Decimal(0)
+    let isOverMaxOdds = false
+
 
     for (const input of inputs) {
         const { perStakeAmount, combinationBetOptionId, odds } = input
@@ -302,7 +326,10 @@ export function calculateTotalStakeAndMaxPayout(inputs: CreateOrderParams[]): St
             
                
         }
-        const equivalentOddsWithoutDiv = calculateEquivalentOddsWithoutDivFromBetOption(odds, combinationBetOption)
+        const [equivalentOddsWithoutDiv, isOver] = calculateEquivalentOddsWithoutDivFromBetOption(odds, maxBetOdds, combinationBetOption)
+        if (isOver) {
+            isOverMaxOdds = true
+        }
         maxPayout = maxPayout.add(perStakeAmountInDecimal.mul(equivalentOddsWithoutDiv))
         totalStake = totalStake.add(perStakeAmountInDecimal.mul(combinationBetOption?.combinationCount ?? 1))
         continue
@@ -315,8 +342,9 @@ export function calculateTotalStakeAndMaxPayout(inputs: CreateOrderParams[]): St
 
 
     return {
-        totalOdds: maxPayout.div(totalStake),
+        equivalentOdds: maxPayout.div(totalStake),
         totalStake: totalStake,
         maxPayout: maxPayout,
+        isOverMaxOdds: isOverMaxOdds,
     }
 }

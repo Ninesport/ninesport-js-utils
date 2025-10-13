@@ -30,19 +30,23 @@ export function combinations(n: number, k: number): number {
  * This function requires the 'decimal.js' library for arbitrary-precision arithmetic.
  * @param odds An array of Decimal objects representing the odds.
  * @param k The number of odds to select in each combination.
- * @returns A Decimal object representing the sum of products.
+ * @returns [Decimal, boolean], A Decimal object representing the sum of products. A boolean is over bet limit.
  */
-export function calculateEquivalentOddsWithoutDiv(odds: Decimal[], k: number): Decimal {
+export function calculateEquivalentOddsWithoutDiv(odds: Decimal[], maxBetOdds: Decimal, k: number): [Decimal, boolean] {
     const n = odds.length
     if (k <= 0 || k > n) {
-        return new Decimal(0)
+        return [new Decimal(0), false]
     }
 
     let sum = new Decimal(0)
+    let isOverMaxOdds = false
 
     // Recursive Depth-First Search (DFS) to find all combinations and sum their products
     const dfs = (startIndex: number, currentProduct: Decimal, currentDepth: number) => {
         if (currentDepth === k) {
+            if (currentProduct.gt(maxBetOdds)) {
+                isOverMaxOdds = true
+            }
             sum = sum.plus(currentProduct)
             return
         }
@@ -55,5 +59,5 @@ export function calculateEquivalentOddsWithoutDiv(odds: Decimal[], k: number): D
     // Start the DFS with an initial product of 1 and depth 0
     dfs(0, new Decimal(1), 0)
 
-    return sum
+    return [sum, isOverMaxOdds]
 }

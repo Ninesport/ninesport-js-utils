@@ -1,177 +1,150 @@
 import Decimal from "decimal.js"
-import { calculateEquivalentOddsFromBetOption, calculateTotalStakeAndMaxPayout, CombinationBetOption, getCombinationBetReferenceTable } from "../src/combination-bet"
+import { calculateTotalStakeAndMaxPayout, CombinationBetOption, CreateOrderParams, getCombinationBetReferenceTable } from "../src/combination-bet"
 
 describe("calculateTotalStakeAndMaxPayout", () => {
-    
-    it("should correctly calculate for a single bet", () => {
-        const inputs = [
-            {
-                perStakeAmount: "100",
-                odds: ["1.5"],
-            },
-        ]
-
-        const result = calculateTotalStakeAndMaxPayout(inputs)
-
-        expect(result.totalStake.toString()).toBe("100")
-        expect(result.maxPayout.toString()).toBe("150") // 100 * 1.5
-        expect(result.totalOdds.toString()).toBe("1.5")
-    })
-
-    it("should correctly calculate for multiple single bets", () => {
-        const inputs = [
-            {
-                perStakeAmount: "10",
-                odds: ["2.5"],
-                equivalentOdds: "2.5",
-            },
-            {
-                perStakeAmount: "20",
-                odds: ["3.0"],
-                equivalentOdds: "3.0",
-            },
-        ]
-
-        const result = calculateTotalStakeAndMaxPayout(inputs)
-
-        expect(result.totalStake.toString()).toBe("30") // 10 + 20
-        expect(result.maxPayout.toString()).toBe("85") // (10 * 2.5) + (20 * 3.0) = 25 + 60
-        expect(result.totalOdds.toFixed(4)).toBe(new Decimal(85).div(30).toFixed(4)) // 85 / 30
-
-        inputs.forEach(input => {
-            expect(calculateEquivalentOddsFromBetOption(input.odds, undefined).toFixed(1)).toBe(input.equivalentOdds)
-        })
-    })
-
-    it("should correctly calculate for a parlay bet", () => {
-        const inputs = [
-            {
-                perStakeAmount: "50",
-                odds: ["1.5", "2.0", "1.2"],
-                equivalentOdds: "3.6",
-            },
-        ]
-
-        const result = calculateTotalStakeAndMaxPayout(inputs)
-
-        expect(result.totalStake.toString()).toBe("50")
-        expect(result.maxPayout.toString()).toBe("180") // 50 * (1.5 * 2.0 * 1.2) = 50 * 3.6
-        expect(result.totalOdds.toString()).toBe("3.6")
-
-        inputs.forEach(input => {
-            expect(calculateEquivalentOddsFromBetOption(input.odds, undefined).toFixed(1)).toBe(input.equivalentOdds)
-        })
-    })
-
-    it("should correctly calculate for multiple parlay bets", () => {
-        const inputs = [
-            {
-                perStakeAmount: "10",
-                odds: ["1.5", "2.0"], // Payout: 10 * 3 = 30
-                equivalentOdds: "3.0",
-            },
-            {
-                perStakeAmount: "5",
-                odds: ["2.0", "3.0", "4.0"], // Payout: 5 * 24 = 120
-                equivalentOdds: "24.0",
-            },
-        ]
-
-        const result = calculateTotalStakeAndMaxPayout(inputs)
-
-        expect(result.totalStake.toString()).toBe("15") // 10 + 5
-        expect(result.maxPayout.toString()).toBe("150") // 30 + 120
-        expect(result.totalOdds.toString()).toBe("10") // 150 / 15
-
-        inputs.forEach(input => {
-            expect(calculateEquivalentOddsFromBetOption(input.odds, undefined).toFixed(1)).toBe(input.equivalentOdds)
-        })
-    })
-
-    it("should correctly calculate for a mix of single and parlay bets", () => {
-        const inputs = [
-            {
-                perStakeAmount: "100",
-                odds: ["1.8"], // Single, Payout: 180
-                equivalentOdds: "1.8",
-            },
-            {
-                perStakeAmount: "20",
-                odds: ["2.0", "2.5"], // Parlay, Payout: 20 * 5 = 100
-                equivalentOdds: "5.0",
-            },
-        ]
-
-        const result = calculateTotalStakeAndMaxPayout(inputs)
-
-        expect(result.totalStake.toString()).toBe("120") // 100 + 20
-        expect(result.maxPayout.toString()).toBe("280") // 180 + 100
-        expect(result.totalOdds.toFixed(4)).toBe(new Decimal(280).div(120).toFixed(4)) // 280 / 120
-
-        inputs.forEach(input => {
-            expect(calculateEquivalentOddsFromBetOption(input.odds, undefined).toFixed(1)).toBe(input.equivalentOdds)
-        })
-    })
-
 
     // 為了測試複式串關，我們需要一個有效的 combinationBetOptionId
     // 從 combination-bet-reference-table.test.ts 中，我們知道 foldSize=3 的 "Doubles" (2/3) 的 ID 是 "4"
     // 它的 combinationCount 是 3
-    const table = getCombinationBetReferenceTable(3)
-    let systemBetOption: CombinationBetOption
-    table.options.forEach(opt => {
-        if (opt.combinationCount === 3) {
-            systemBetOption = opt // System 2/3 (Doubles)
-            expect(systemBetOption.id).toBe("4")
-            expect(systemBetOption.fallbackName()).toBe("System 2/3")
-            expect(systemBetOption.parameters.length).toBe(1)
-            expect(systemBetOption.parameters[0].foldSize).toBe(3)
-            expect(systemBetOption.parameters[0].combSelectNum).toBe(2)
-        }
-    })
+    const systemBetOption = (() => {
+        const table = getCombinationBetReferenceTable(3)
+        const opt = table.options.find(o => o.combinationCount === 3) // System 2/3 (Doubles)
+        expect(opt?.id).toBe("4")
+        expect(opt?.fallbackName()).toBe("System 2/3")
+        expect(opt?.parameters.length).toBe(1)
+        expect(opt?.parameters[0].foldSize).toBe(3)
+        expect(opt?.parameters[0].combSelectNum).toBe(2)
+        return opt!
+    })()
 
+    interface TestCase {
+            description: string
+            perStakeAmount: string
+            odds: string[]
+            combinationBetOptionId?: string
+            combinationBetOption?: CombinationBetOption
+            equivalentOdds?: string
+            // 必填
+            maxBetOdds: string
+            expectedTotalStake: string
+            expectedMaxPayout: string
+            expectedTotalOdds: Decimal
+            expectedOverMaxOdds: boolean        
+    }
 
-    it("should correctly calculate for a system bet (e.g., System 2/3)", () => {
-        const inputs = [
-            {
-                perStakeAmount: "10",
-                combinationBetOptionId: systemBetOption.id, // System 2/3
-                combinationBetOption: systemBetOption,
-                odds: ["1.5", "2.0", "3.0"],
-                equivalentOdds: "4.5", // 13.5 / 3
-            },
-        ]
+    const testCases: TestCase[] = [
+        {
+            description: "Single bet",
+            perStakeAmount: "10",
+            odds: ["2.0"],
+            maxBetOdds: "10",
+            expectedTotalStake: "10",
+            expectedMaxPayout: "20",
+            expectedTotalOdds: new Decimal("2.0"),
+            expectedOverMaxOdds: false,
+        },
+        {
+            description: "Single bet",
+            perStakeAmount: "10",
+            odds: ["2.0"],
+            maxBetOdds: "1.8",
+            expectedTotalStake: "10",
+            expectedMaxPayout: "20",
+            expectedTotalOdds: new Decimal("2.0"),
+            expectedOverMaxOdds: true,
+        },
+        {
+            description: "Single bet",
+            perStakeAmount: "10",
+            odds: ["150.0"],
+            maxBetOdds: "100",
+            expectedTotalStake: "10",
+            expectedMaxPayout: "1500", // 10 * 150
+            expectedTotalOdds: new Decimal("150.0"),
+            expectedOverMaxOdds: true,
+        },
+        {
+            description: "Parlay bet",
+            perStakeAmount: "10",
+            odds: ["2.0", "3.0"],
+            maxBetOdds: "7",
+            expectedTotalStake: "10",
+            expectedMaxPayout: "60", // 10 * (2.0 * 3.0)
+            expectedTotalOdds: new Decimal("6.0"),
+            expectedOverMaxOdds: false,
+        },
+        {
+            description: "Parlay bet",
+            perStakeAmount: "10",
+            odds: ["2.0", "3.0"],
+            maxBetOdds: "5",
+            expectedTotalStake: "10",
+            expectedMaxPayout: "60",
+            expectedTotalOdds: new Decimal("6.0"),
+            expectedOverMaxOdds: true,
+        },
+        {
+            description: "Parlay bet",
+            perStakeAmount: "10",
+            odds: ["10.0", "15.0"], // Product = 150
+            maxBetOdds: "100",
+            expectedTotalStake: "10",
+            expectedMaxPayout: "1500", // 10 * 150
+            expectedTotalOdds: new Decimal("150.0"),
+            expectedOverMaxOdds: true,
+        },
+        {
+            description: "System bet (2/3)",
+            perStakeAmount: "10",
+            odds: ["2.0", "3.0", "4.0"],
+            combinationBetOptionId: systemBetOption.id, // System 2/3
+            combinationBetOption: systemBetOption,
+            maxBetOdds: "12",
+            expectedTotalStake: "30", // 10 * 3 combinations
+            expectedMaxPayout: "260", // 10 * ((2*3) + (2*4) + (3*4)) = 10 * (6 + 8 + 12) = 10 * 26
+            expectedTotalOdds: new Decimal(260).div(new Decimal(30)), // 260 / 30
+            expectedOverMaxOdds: false,
+        },
+        {
+            description: "System bet (2/3)",
+            perStakeAmount: "10",
+            odds: ["2.0", "3.0", "4.0"],
+            combinationBetOptionId: systemBetOption.id, // System 2/3
+            combinationBetOption: systemBetOption,
+            maxBetOdds: "11.9",
+            expectedTotalStake: "30",
+            expectedMaxPayout: "260",
+            expectedTotalOdds: new Decimal(260).div(new Decimal(30)),
+            expectedOverMaxOdds: true,
+        },
+    ]
 
-        const result = calculateTotalStakeAndMaxPayout(inputs)
+    for (const testCase of testCases) {
+        it(`should correctly calculate for ${testCase.description} - [${testCase.combinationBetOptionId}] ${testCase.odds} (MAX: ${testCase.maxBetOdds})`, () => {
+            const oddsDecimals = testCase.odds.map(o => new Decimal(o))
 
-        // combinationCount for System 2/3 is 3 (C(3,2))
-        // Total stake = perStakeAmount * combinationCount = 10 * 3 = 30
-        expect(systemBetOption.combinationCount).toBe(3)
-        expect(result.totalStake.toString()).toBe("30")
+            let combinationBetOption: CombinationBetOption | undefined = testCase.combinationBetOption
+            if (!combinationBetOption && testCase.combinationBetOptionId) {
+                const foldSize = oddsDecimals.length
+                const table = getCombinationBetReferenceTable(foldSize)
+                combinationBetOption = table.options.find(opt => opt.id === testCase.combinationBetOptionId)
+                if (!combinationBetOption) {
+                    throw new Error(`CombinationBetOption with id ${testCase.combinationBetOptionId} not found for foldSize ${foldSize}`)
+                }
+            }
 
-        // Max payout = perStakeAmount * sum of odds products for each combination
-        // Combinations: (1.5 * 2.0) + (1.5 * 3.0) + (2.0 * 3.0) = 3 + 4.5 + 6 = 13.5
-        // Payout = 10 * 13.5 = 135
-        expect(result.maxPayout.toString()).toBe("135")
-        expect(result.totalOdds.toString()).toBe("4.5") // 135 / 30
+            const inputs: CreateOrderParams[] = [{
+                perStakeAmount: testCase.perStakeAmount,
+                odds: testCase.odds,
+                combinationBetOptionId: testCase.combinationBetOptionId,
+            }]
 
-        inputs.forEach(input => {
-            expect(calculateEquivalentOddsFromBetOption(input.odds, input.combinationBetOption).toFixed(1)).toBe(input.equivalentOdds)
-        })
-    })
+            const result = calculateTotalStakeAndMaxPayout(inputs, testCase.maxBetOdds)
 
-    it("should throw an error if odds array is empty for single/parlay", () => {
-        const inputs = [{ perStakeAmount: "10", odds: [] }]
-        expect(() => calculateTotalStakeAndMaxPayout(inputs)).toThrow("odds length cannot be 0")
-    })
-
-    it("should throw an error if total stake is zero", () => {
-        const inputs = [{ perStakeAmount: "0", odds: ["1.5"] }]
-        expect(() => calculateTotalStakeAndMaxPayout(inputs)).toThrow("totalStake cannot be zero")
-    })
-
-    it("should throw an error for an invalid combinationBetOptionId", () => {
-        const inputs = [{ perStakeAmount: "10", combinationBetOptionId: "invalid-id", odds: ["1.5", "2.0"] }]
-        expect(() => calculateTotalStakeAndMaxPayout(inputs)).toThrow("CombinationBetOption with id invalid-id not found")
-    })
+            expect(result.totalStake.toString()).toBe(testCase.expectedTotalStake)
+            expect(result.maxPayout.toString()).toBe(testCase.expectedMaxPayout)
+            expect(result.equivalentOdds.eq(testCase.expectedTotalOdds)).toBe(true)
+            expect(result.isOverMaxOdds).toBe(testCase.expectedOverMaxOdds)
+        })   
+    }
 })

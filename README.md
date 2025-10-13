@@ -76,7 +76,7 @@ try {
 
 **簽名**
 ```typescript
-calculateTotalStakeAndMaxPayout(inputs: CreateOrderParams[]): StakeAndPayout
+calculateTotalStakeAndMaxPayout(inputs: CreateOrderParams[], maxBetOdds: string): StakeAndPayout
 ```
 
 **參數**
@@ -84,20 +84,22 @@ calculateTotalStakeAndMaxPayout(inputs: CreateOrderParams[]): StakeAndPayout
   - `perStakeAmount` (`string`): 每注的下注金額。
   - `odds` (`string[]`): 該投注項目中所有選項的賠率陣列。
   - `combinationBetOptionId` (`string`, 可選): 複式串關的選項 ID。如果此欄位留空，則視為單注或普通串關。此 ID 可從 `getCombinationBetReferenceTable` 的回傳值中取得。
+- `maxBetOdds` (`string`): 用於判斷單一串關是否超過限制的賠率。
 
 **回傳值**
 
 一個 `StakeAndPayout` 物件，包含：
 - `totalStake` (`Decimal`): 總下注金額。
 - `maxPayout` (`Decimal`): 預期最高賠付金額。
-- `totalOdds` (`Decimal`): 等效總賠率 (`maxPayout / totalStake`)。
+- `equivalentOdds` (`Decimal`): 等效總賠率 (`maxPayout / totalStake`)。
+- `isOverMaxOdds`: (`boolean`): 是否有任何單一串關的賠率超過了 `maxBetOdds`。
 
 **範例**
 
 ```typescript
 import { calculateTotalStakeAndMaxPayout } from 'ninesport-js-utils/combination-bet';
 
-// 假設我們有一個單注和一個 2/3 的複式串關
+// 假設我們有一個單注和一個 2/3 的複式串關 (System 2/3)
 const bets = [
     // 單注
     { perStakeAmount: "100", odds: ["1.8"] },
@@ -105,11 +107,12 @@ const bets = [
     { perStakeAmount: "10", odds: ["1.5", "2.0", "3.0"], combinationBetOptionId: "4" }
 ];
 
-const result = calculateTotalStakeAndMaxPayout(bets);
+const result = calculateTotalStakeAndMaxPayout(bets, "6.0");
 
 console.log(`總投注: ${result.totalStake.toString()}`);     // 130 (單注100 + 複式(10*3注)=30)
 console.log(`最高賠付: ${result.maxPayout.toString()}`);   // 315 (單注180 + 複式135)
-console.log(`等效總賠率: ${result.totalOdds.toFixed(4)}`); // 2.4231
+console.log(`等效總賠率: ${result.equivalentOdds.toFixed(4)}`); // 2.4231
+console.log(`單關賠率超出限制: ${result.isOverMaxOdds}`); // false, 最大恰為6.0, 沒有超過限制
 ```
 
 ---
@@ -122,18 +125,19 @@ console.log(`等效總賠率: ${result.totalOdds.toFixed(4)}`); // 2.4231
 
 **簽名**
 ```typescript
-calculateEquivalentOddsFromBetOption(odds: string[], combinationBetOption?: CombinationBetOption): Decimal
+calculateEquivalentOddsFromBetOption(odds: string[], maxBetOdds: string, combinationBetOption?: CombinationBetOption): EquivalentOddsFromBetOption
 ```
 
 **參數**
 - `odds` (`string[]`): 一個包含所有選項賠率的字串陣列。
+- `maxBetOdds` (`string`): 用於判斷單一串關是否超過限制的賠率。
 - `combinationBetOption` (`CombinationBetOption`, 可選): 複式串關的選項物件。如果此欄位留空，則會根據 `odds` 的長度自動判斷為單注（長度為 1）或普通串關（長度大於 1）。此物件可從 `getCombinationBetReferenceTable` 的回傳值中取得。
 
 **回傳值**
 
-一個 `Decimal` 物件，代表計算出的等效賠率。
-- 對於單注或普通串關，回傳值是所有賠率的乘積。
-- 對於複式串關，回傳值是所有組合的賠率乘積總和除以總組合數。
+一個 `EquivalentOddsFromBetOption` 物件，包含：
+- `equivalentOdds` (`Decimal`): 等效賠率。
+- `isOverMaxOdds`: (`boolean`): 是否有任何單一串關的賠率超過了 `maxBetOdds`。
 
 **範例**
 
@@ -144,8 +148,9 @@ import {
 } from 'ninesport-js-utils/combination-bet';
 
 // 範例 1: 普通串關 (3串1)
-const parlayOdds = calculateEquivalentOddsFromBetOption(["1.5", "2.0", "1.2"]);
-console.log(parlayOdds.toString()); // "3.6" (1.5 * 2.0 * 1.2)
+const result = calculateEquivalentOddsFromBetOption(["1.5", "2.0", "1.2"], "3.5");
+console.log(result.equivalentOdds.toString()); // "3.6" (1.5 * 2.0 * 1.2)
+console.log(result.isOverMaxOdds); // true
 
 // 範例 2: 複式串關 (System 2/3)
 // 首先，獲取 3 個投注的所有複式選項
@@ -153,9 +158,10 @@ const table = getCombinationBetReferenceTable(3);
 // 從中找到 System 2/3 (Doubles) 的選項，其 combinationCount 為 3
 const system2Of3Option = table.options.find(opt => opt.combinationCount === 3);
 
-const systemOdds = calculateEquivalentOddsFromBetOption(["1.5", "2.0", "3.0"], system2Of3Option);
+const result = calculateEquivalentOddsFromBetOption(["1.5", "2.0", "3.0"], "5.9", system2Of3Option);
 // 計算方式: ((1.5 * 2.0) + (1.5 * 3.0) + (2.0 * 3.0)) / 3 = (3 + 4.5 + 6) / 3 = 13.5 / 3
-console.log(systemOdds.toString()); // "4.5"
+console.log(result.equivalentOdds.toString()); // "4.5"
+console.log(result.isOverMaxOdds); // true
 ```
 
 ---
