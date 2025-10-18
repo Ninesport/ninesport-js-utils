@@ -147,4 +147,11 @@ describe("calculateTotalStakeAndMaxPayout", () => {
             expect(result.isOverMaxOdds).toBe(testCase.expectedOverMaxOdds)
         })   
     }
+
+    // 確保969仍然跑得動
+    calculateTotalStakeAndMaxPayout([{
+        perStakeAmount: "10",
+        odds: ("2.0" + ",2.0".repeat(18)).split(","),
+        combinationBetOptionId: getCombinationBetReferenceTable(19).options.find(opt => opt.combinationCount === 969)?.id,
+    }], "100")
 })
