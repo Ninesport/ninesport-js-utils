@@ -1,8 +1,12 @@
 import Decimal from "decimal.js"
 import { calculateEquivalentOddsWithoutDiv, combinations } from "./combinations"
 
-// From model/init.go
-const MAX_FOLD_SIZE = 30
+/** 
+ * 串關/複式投注裡用戶最大可選的投注數量(N Bets)
+*/
+export const MAX_FOLD_SIZE = process.env.MAX_FOLD_SIZE ? parseInt(process.env.MAX_FOLD_SIZE) : 30
+const MAX_COMBINATION_COUNT = process.env.MAX_COMBINATION_COUNT ? parseInt(process.env.MAX_COMBINATION_COUNT) : 1000
+
 
 /**
  * Represents the parameters for a single part of a combination bet.
@@ -127,6 +131,10 @@ function createCombinationBetReferenceTable(lastID: number, foldSize: number): [
     last1Params.push({ foldSize, combSelectNum: 1 })
     const last1Option = createOption(lastID.toString(), last1Count, last1Params)
     output.options.push(last1Option)
+
+    // only reserve the options which's combnationCount <= MAX_COMBINATION_COUNT, but keep the id unchanged
+    output.options = output.options.filter(option => option.combinationCount <= MAX_COMBINATION_COUNT)
+
 
     return [lastID, output]
 }
