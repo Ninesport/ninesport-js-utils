@@ -171,6 +171,75 @@ console.log(result.isOverMaxOdds); // true
 
 ---
 
+### `calculateCombinationBetDetail`
+
+此函式用於計算指定複式投注選項的所有子注單組合及其詳細資訊。當使用者想查看一個複式投注（例如 "System 2/4"）是由哪些具體的串關組合而成時，這個函式非常有用。它支援分頁，可以有效地處理大量組合的情況。
+
+**簽名**
+```typescript
+calculateCombinationBetDetail(input: CalculateCombinationBetDetailInput): CombinationBetDetail
+```
+
+**參數** (`CalculateCombinationBetDetailInput`)
+- `combinationBetOptionId` (`string`): 複式投注選項的 ID。此 ID 可從 `getCombinationBetReferenceTable` 的回傳值中取得。
+- `payoutPrices` (`string[]`): 一個包含所有選項結算賠率的字串陣列。
+- `page` (`number`): 指定要查詢的頁數，從 1 開始。
+- `pageSize` (`number`, 可選): 每頁顯示的項目數量，預設為 10。
+
+**回傳值**
+
+一個 `CombinationBetDetail` 物件，包含：
+- `pagination` (`Pagination`): 分頁資訊物件，包含總頁數、總項目數等。
+- `items` (`CombinationBetItem[]`): 一個陣列，其中每個物件代表一個子注單組合。
+  - `betIndices` (`number[]`): 組成此子注單的選項索引（從 1 開始）。
+  - `settledOdds` (`Decimal`): 此子注單組合的結算賠率。
+- `combinationCount` (`number`): 該複式投注的總組合數。
+- `combinationBetOptionId` (`string`): 傳入的複式投注 ID。
+- `foldSize` (`number`): 投注選項的總數。
+
+**範例**
+
+假設使用者選擇了 4 個投注項目，並想查看 "System 2/4" 的詳細組合。
+
+```typescript
+import { 
+  getCombinationBetReferenceTable,
+  calculateCombinationBetDetail 
+} from 'ninesport-js-utils/combination-bet';
+
+// 1. 定義賠率和分頁參數
+const payoutPrices = ["1.5", "2.0", "2.5", "3.0"];
+const foldSize = payoutPrices.length; // 4
+
+// 2. 獲取 foldSize=4 的複式投注選項
+const table = getCombinationBetReferenceTable(foldSize);
+// 找到 "System 2/4"，其組合數為 C(4, 2) = 6
+const system2Of4Option = table.options.find(opt => opt.combinationCount === 6);
+
+if (system2Of4Option) {
+  // 3. 計算第一頁的詳細組合 (每頁顯示 4 項)
+  const detailPage1 = calculateCombinationBetDetail({
+    combinationBetOptionId: system2Of4Option.id,
+    payoutPrices: payoutPrices,
+    page: 1,
+    pageSize: 4,
+  });
+
+  console.log(detailPage1.pagination);
+  // { page: 1, total: 6, pageSize: 4, pages: 2, hasNext: true, hasPrev: false }
+
+  console.log(detailPage1.items);
+  // [
+  //   { betIndices: [1, 2], settledOdds: new Decimal("3") },    // 1.5 * 2.0
+  //   { betIndices: [1, 3], settledOdds: new Decimal("3.75") }, // 1.5 * 2.5
+  //   { betIndices: [1, 4], settledOdds: new Decimal("4.5") },  // 1.5 * 3.0
+  //   { betIndices: [2, 3], settledOdds: new Decimal("5") }     // 2.0 * 2.5
+  // ]
+}
+```
+
+---
+
 ### `reduceEventSubscriptions`
 
 此函式是一個 Reducer，專門用於處理來自 WebSocket 的即時賽事更新。它接收目前的賽事資料狀態和一系列的更新訊息，並回傳一個新的、已更新的狀態，適用於 React、Vue 等前端框架的狀態管理。
