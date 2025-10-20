@@ -1,12 +1,23 @@
 import Decimal from "decimal.js"
 import { calculateEquivalentOddsWithoutDiv, combinations } from "./combinations"
 
-/** 
- * 串關/複式投注裡用戶最大可選的投注數量(N Bets)
-*/
-export const MAX_FOLD_SIZE = process.env.MAX_FOLD_SIZE ? parseInt(process.env.MAX_FOLD_SIZE) : 30
-const MAX_COMBINATION_COUNT = process.env.MAX_COMBINATION_COUNT ? parseInt(process.env.MAX_COMBINATION_COUNT) : 1000
+interface Config {
+  MAX_FOLD_SIZE: number;
+  MAX_COMBINATION_COUNT: number;
+}
 
+const config: Config = {
+    MAX_FOLD_SIZE: 30,
+    MAX_COMBINATION_COUNT: 1000,
+}
+
+export function maxFoldSize(): number {
+    return config.MAX_FOLD_SIZE
+}
+
+export function maxCombinationCount(): number {
+    return config.MAX_COMBINATION_COUNT
+}
 
 /**
  * Represents the parameters for a single part of a combination bet.
@@ -106,7 +117,7 @@ function createCombinationBetReferenceTable(lastID: number, foldSize: number): [
     let last1Count = 0
 
     for (let combSelectNum = 2; combSelectNum <= foldSize; combSelectNum++) {
-        const combinationCount = combinations(foldSize, combSelectNum)
+        const combinationCount = combinations(foldSize, combSelectNum) 
         const param: CombinationBetParameter = { foldSize, combSelectNum }
     
         if (combSelectNum !== foldSize) {
@@ -133,7 +144,7 @@ function createCombinationBetReferenceTable(lastID: number, foldSize: number): [
     output.options.push(last1Option)
 
     // only reserve the options which's combnationCount <= MAX_COMBINATION_COUNT, but keep the id unchanged
-    output.options = output.options.filter(option => option.combinationCount <= MAX_COMBINATION_COUNT)
+    output.options = output.options.filter(option => option.combinationCount <= config.MAX_COMBINATION_COUNT)
 
 
     return [lastID, output]
@@ -144,13 +155,13 @@ function createCombinationBetReferenceTable(lastID: number, foldSize: number): [
  * This function should be called once to generate the static betting data.
  * @returns An object containing all the generated combination data.
  */
-function initCombinationBetReferenceTableMap() {
+function initCombinationBetReferenceTableMap(): { combinationBetOptionsMap: CombinationBetOptionsMap, combinationBetReferenceTablesMap: CominationBetReferenceTableMap } {
     const combinationBetReferenceTablesMap: CominationBetReferenceTableMap = new Map<number, CombinationBetReferenceTable>()
     const combinationBetOptionsMap: CombinationBetOptionsMap = new Map<string, CombinationBetOption>()
     // const combinationBetOptions = new Map<string, CombinationBetOption>()
 
     let lastID = 0
-    for (let foldSize = 1; foldSize <= MAX_FOLD_SIZE; foldSize++) {
+    for (let foldSize = 1; foldSize <= config.MAX_FOLD_SIZE; foldSize++) {
         const [newLastID, table] = createCombinationBetReferenceTable(lastID, foldSize)
         lastID = newLastID
         combinationBetReferenceTablesMap.set(foldSize, table)
@@ -169,8 +180,31 @@ function initCombinationBetReferenceTableMap() {
     }
 }
 
-// import 的時候就直接初始化
-const { combinationBetOptionsMap, combinationBetReferenceTablesMap } = initCombinationBetReferenceTableMap()
+let initializedData = initCombinationBetReferenceTableMap()
+
+/**
+ * Configures the global settings for the combination bet calculations.
+ * This function should be called once at the application's entry point, before any other functions from this library are used.
+ * Calling this function will re-initialize the reference tables.
+ * @param options - The configuration options to set.
+ * @example
+ * ```
+ * import { configureCombinationBets } from 'ninesport-js-utils/combination-bet';
+ * 
+ * configureCombinationBets({ MAX_FOLD_SIZE: 20, MAX_COMBINATION_COUNT: 500 });
+ * ```
+ */
+export function configureCombinationBets(options: Partial<Config>) {
+    if (options.MAX_FOLD_SIZE !== undefined) {
+        config.MAX_FOLD_SIZE = options.MAX_FOLD_SIZE
+    }
+    if (options.MAX_COMBINATION_COUNT !== undefined) {
+        config.MAX_COMBINATION_COUNT = options.MAX_COMBINATION_COUNT
+    }
+    // Re-initialize the tables with the new configuration
+    initializedData = initCombinationBetReferenceTableMap()
+}
+
 
 /** 
  * 取得複式投注表格
@@ -178,7 +212,7 @@ const { combinationBetOptionsMap, combinationBetReferenceTablesMap } = initCombi
  * @returns 該foldSize的複式投注表格，即: CombinationBetReferenceTable
 */
 export function getCombinationBetReferenceTable(foldSize: number): CombinationBetReferenceTable {
-    const table = combinationBetReferenceTablesMap.get(foldSize)
+    const table = initializedData.combinationBetReferenceTablesMap.get(foldSize)
     if (!table) {
         throw new Error(`CombinationBetReferenceTable for foldSize ${foldSize} not found`)
     }
@@ -327,7 +361,7 @@ export function calculateTotalStakeAndMaxPayout(inputs: CreateOrderParams[], max
         let combinationBetOption: CombinationBetOption | undefined
 
         if (combinationBetOptionId) {
-            combinationBetOption = combinationBetOptionsMap.get(combinationBetOptionId)
+            combinationBetOption = initializedData.combinationBetOptionsMap.get(combinationBetOptionId)
             if (!combinationBetOption) {
                 throw new Error(`CombinationBetOption with id ${combinationBetOptionId} not found`)
             }

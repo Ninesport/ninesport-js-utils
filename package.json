@@ -55,6 +55,10 @@
     "./combination-bet": {
       "import": "./dist/combination-bet.js",
       "types": "./dist/combination-bet.d.ts"
+    },
+    "./combination-bet-detail": {
+      "import": "./dist/combination-bet-detail.js",
+      "types": "./dist/combination-bet-detail.d.ts"
     }
   }
 }

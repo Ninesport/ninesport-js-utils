@@ -1,5 +1,5 @@
 import Decimal from "decimal.js"
-import { MAX_FOLD_SIZE } from "./combination-bet"
+import { maxFoldSize } from "./combination-bet"
 
 /**
  * Calculates the number of combinations (nCk) without repetition.
@@ -67,9 +67,9 @@ export function calculateEquivalentOddsWithoutDiv(odds: Decimal[], maxBetOdds: D
     if (k <= 0 || k > n) {
         return [new Decimal(0), false]
     }
-    if (n > MAX_FOLD_SIZE) {
+    if (n > maxFoldSize()) {
         // raise error
-        throw new Error(`The number of odds (${n}) exceeds the maximum allowed fold size (${MAX_FOLD_SIZE}).`)
+        throw new Error(`The number of odds (${n}) exceeds the maximum allowed fold size (${maxFoldSize()}).`)
     }
 
     // Start the DFS with an initial product of 1 and depth 0

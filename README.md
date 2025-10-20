@@ -33,9 +33,10 @@ yarn add ninesport-js-utils decimal.js
 ### `getCombinationBetReferenceTable`
 
 - 此函式用於根據選擇的投注數量（`foldSize`）獲取所有可用的複式串關選項。
-生成的表格根據兩個環境變數 `MAX_FOLD_SIZE` 和 `MAX_COMBINATION_COUNT` 決定。
-- `MAX_FOLD_SIZE`: 串關/複式投注裡用戶最大可選的投注數量(N Bets), 預設為`30`。
-- `MAX_COMBINATION_COUNT`: 任何一個投注id的組合總數都不會超過`MAX_COMBINATION_COUNT`, 預設為`1000`。
+生成的表格根據兩個變數 `maxFoldSize()` 和 `maxCombinationCount()` 決定。
+- `maxFoldSize()`: 串關/複式投注裡用戶最大可選的投注數量(N Bets), 預設為`30`。
+- `maxCombinationCount()`: 任何一個投注id的組合總數都不會超過`maxCombinationCount()`, 預設為`1000`。
+- 其中上述兩個參數可以透過 `configureCombinationBets({MAX_FOLD_SIZE: 40, MAX_COMBINATION_COUNT: 2000})` 來修改
 
 
 **簽名**
@@ -53,7 +54,7 @@ getCombinationBetReferenceTable(foldSize: number): CombinationBetReferenceTable
 **範例**
 
 ```typescript
-import { getCombinationBetReferenceTable, MAX_FOLD_SIZE } from 'ninesport-js-utils/combination-bet';
+import { getCombinationBetReferenceTable, maxFoldSize } from 'ninesport-js-utils/combination-bet';
 
 try {
   // 獲取當使用者選擇 3 個投注時的所有複式串關選項
@@ -61,7 +62,7 @@ try {
   
   console.log(tableFor3Folds.foldSize); // 3
   console.log(tableFor3Folds.options);
-  console.log(MAX_FOLD_SIZE); // 30
+  console.log(maxFoldSize()); // 30
   // [
   //   { id: '3', foldSize: 3, combinationCount: 1, parameters: [...] }, // 3串1 (Treble)
   //   { id: '4', foldSize: 3, combinationCount: 3, parameters: [...] }, // 2串1 (Doubles)

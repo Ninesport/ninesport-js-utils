@@ -1,4 +1,4 @@
-import { getCombinationBetReferenceTable, MAX_FOLD_SIZE } from "../src/combination-bet"
+import { configureCombinationBets, getCombinationBetReferenceTable, maxCombinationCount, maxFoldSize } from "../src/combination-bet"
 
 // generated from golang
 const expectedData = [
@@ -2234,9 +2234,34 @@ const expectedData = [
 ]
 
 describe("CombinationBetReferenceTable Generation", () => {
-    it("check MAX_FOLD_SIZE", () => {
-        expect(MAX_FOLD_SIZE).toBe(30)
+    
+    it("check MAX_FOLD_SIZE changed", () => {
+        configureCombinationBets({
+            MAX_FOLD_SIZE: 40,
+        })
+        expect(maxFoldSize()).toBe(40)
+        expect(() => getCombinationBetReferenceTable(39)).not.toThrow()
     })
+    it("check MAX_COMBINATION_COUNT changed", () => {
+        configureCombinationBets({
+            MAX_COMBINATION_COUNT: 2000,
+        })
+        expect(maxCombinationCount()).toBe(2000)
+    })
+    it("check maxFoldSize()", () => {
+        configureCombinationBets({
+            MAX_FOLD_SIZE: 30,
+        })
+        expect(maxFoldSize()).toBe(30)
+        expect(() => getCombinationBetReferenceTable(39)).toThrow()
+    })
+    it("check MAX_COMBINATION_COUNT changed", () => {
+        configureCombinationBets({
+            MAX_COMBINATION_COUNT: 1000,
+        })
+        expect(maxCombinationCount()).toBe(1000)
+    })
+
     it("should generate tables that match the expected data from Go implementation", () => {
         expectedData.forEach(expectedTable => {
             const foldSize = expectedTable.FoldSize
