@@ -1,6 +1,6 @@
 {
   "name": "ninesport-js-utils",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "description": "Ninesport JS Utils",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

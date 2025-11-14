@@ -42,9 +42,9 @@ export interface IEventsWithLeagueGroup<F extends IFixture, M extends IMarket, L
 export interface IEventSubscription<F extends IFixture, M extends IMarket, L extends ILivescore> {
     type: string
     fixtureId: string
-    fixture?: F
-    markets?: M[]
-    livescore?: L
+    fixture?: F | null
+    markets?: M[] | null
+    livescore?: L | null
 }
 
 
