@@ -19,7 +19,7 @@ export interface ILivescore {
 
 export interface IEvent<F extends IFixture, M extends IMarket, L extends ILivescore> {
     fixture: F
-    markets?: M[] | null
+    markets: M[]
     livescore?: L | null
 }
 
@@ -105,7 +105,7 @@ function cloneEvent<F extends IFixture, M extends IMarket, L extends ILivescore>
     return {
         ...event,
         fixture: event.fixture,
-        markets: event.markets ? [...event.markets] : undefined,
+        markets: event.markets,
         livescore: event.livescore ? {
             ...event.livescore,
         } : undefined,
@@ -124,7 +124,7 @@ function subscriptionsToPrependGroups<F extends IFixture, M extends IMarket, L e
         if (exists) {
             exists.events.push({
                 fixture: s.fixture,
-                markets: s.markets ?? undefined,
+                markets: s.markets ?? [],
                 livescore: s.livescore ?? undefined,
             })
             return
@@ -137,7 +137,7 @@ function subscriptionsToPrependGroups<F extends IFixture, M extends IMarket, L e
             hasData: true,
             events: [{
                 fixture: s.fixture,
-                markets: s.markets ?? undefined,
+                markets: s.markets ?? [],
                 livescore: s.livescore ?? undefined,
             }],
         })
