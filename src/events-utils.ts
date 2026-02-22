@@ -1,7 +1,7 @@
 export interface IFixture {
     id: string
     leagueId: string
-    leagueLocalName: string
+    leagueLocaleName: string
 }
 
 export interface IBet {
@@ -33,7 +33,7 @@ enum SubscriptionMessageType {
 }
 export interface IEventsWithLeagueGroup<F extends IFixture, M extends IMarket, L extends ILivescore> {
     leagueId: string
-    leagueLocalName: string
+    leagueLocaleName: string
     eventsCount: number
     hasData: boolean
     events: IEvent<F, M, L>[]
@@ -132,7 +132,7 @@ function subscriptionsToPrependGroups<F extends IFixture, M extends IMarket, L e
 
         output.push({
             leagueId: s.fixture.leagueId,
-            leagueLocalName: s.fixture.leagueLocalName,
+            leagueLocaleName: s.fixture.leagueLocaleName,
             eventsCount: 1,
             hasData: true,
             events: [{

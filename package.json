@@ -1,6 +1,6 @@
 {
   "name": "ninesport-js-utils",
-  "version": "1.3.3",
+  "version": "1.4.0",
   "description": "Ninesport JS Utils",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -13,7 +13,7 @@
     "build": "tsc",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
-    "test-publish": "yarn test && yarn build && yarn publish"
+    "test-publish": "yarn test && yarn build && yarn publish --registry https://registry.npmjs.org"
   },
   "repository": {
     "type": "git",
