@@ -154,4 +154,16 @@ describe("calculateTotalStakeAndMaxPayout", () => {
         odds: ("2.0" + ",2.0".repeat(18)).split(","),
         combinationBetOptionId: getCombinationBetReferenceTable(19).options.find(opt => opt.combinationCount === 969)?.id,
     }], "100")
+
+
+    // 2026/03/01 Assertion
+    const result = calculateTotalStakeAndMaxPayout([{
+        perStakeAmount: "10",
+        odds: ["2.1004"],
+    }, {
+        perStakeAmount: "10",
+        odds: ["2.0646"],
+    }], "10000")
+    expect(result.totalStake.toString()).toBe("20")
+    expect(result.maxPayout.toString()).toBe("41.65")
 })

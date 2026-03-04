@@ -1,3 +1,5 @@
+import Decimal from "decimal.js"
+
 export interface IFixture {
     id: string
     leagueId: string
@@ -6,6 +8,8 @@ export interface IFixture {
 
 export interface IBet {
     id: string
+    isPriceHigher?: boolean | null
+    actualPrice: string
 }
 
 export interface IMarket {
@@ -76,6 +80,28 @@ function addOrUpdateMarkets<F extends IFixture, M extends IMarket, L extends ILi
         for (let i = 0; i < updatedMarkets.length; i++) {
             const um = updatedMarkets[i]
             if (um.id === newMarket.id) {
+                const previousBetsMap: { [key: string]: IBet } = {}
+                um.bets.forEach(rows => {
+                    rows.forEach(bet => {
+                        previousBetsMap[bet.id] = bet
+                    })
+                })
+                newMarket.bets.forEach(rows => {
+                    rows.forEach(bet => {
+                        const previousBet = previousBetsMap[bet.id]
+                        if (previousBet) {
+                            const previousPrice = new Decimal(previousBet.actualPrice)
+                            const currentPrice = new Decimal(bet.actualPrice)
+                            if (currentPrice.gt(previousPrice)) {
+                                bet.isPriceHigher = true
+                            } else if (currentPrice.lt(previousPrice)) {
+                                bet.isPriceHigher = false
+                            } else {
+                                bet.isPriceHigher = null
+                            }
+                        }
+                    })
+                })
                 updatedMarkets[i] = newMarket
                 found = true
                 break
