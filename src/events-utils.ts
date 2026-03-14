@@ -1,9 +1,16 @@
 import Decimal from "decimal.js"
 
+export interface ILeague {
+    id: string
+    weight: number
+}
+
 export interface IFixture {
     id: string
+    startedAt?: string | Date
     leagueId: string
     leagueLocaleName: string
+    league: ILeague
 }
 
 export interface IBet {
@@ -51,24 +58,25 @@ export interface IEventSubscription<F extends IFixture, M extends IMarket, L ext
     livescore?: L | null
 }
 
-
-function updateEvent<F extends IFixture, M extends IMarket, L extends ILivescore>(previous: IEvent<F, M, L>, newEvent: IEventSubscription<F, M, L>): IEvent<F, M, L> {
-    return {
-        ...previous,
-        fixture: newEvent.fixture ?? previous.fixture,
-        markets: newEvent.markets ?? previous.markets,
-        livescore: newEvent.livescore ?? previous.livescore,
+function updateEventInplace<F extends IFixture, M extends IMarket, L extends ILivescore>(previous: IEvent<F, M, L>, newEvent: IEventSubscription<F, M, L>): void {
+    if (newEvent.fixture) {
+        previous.fixture = newEvent.fixture
+    }
+    if (newEvent.markets) {
+        previous.markets = newEvent.markets
+    }
+    if (newEvent.livescore) {
+        previous.livescore = newEvent.livescore
     }
 }
-function addOrUpdateMarkets<F extends IFixture, M extends IMarket, L extends ILivescore>(previous: IEvent<F, M, L>, subscription: IEventSubscription<F, M, L>): IEvent<F, M, L> {
+
+function addOrUpdateMarketsInplace<F extends IFixture, M extends IMarket, L extends ILivescore>(previous: IEvent<F, M, L>, subscription: IEventSubscription<F, M, L>): void {
     if (!subscription.markets) {
-        return previous
+        return
     }
     if (!previous.markets) {
-        return {
-            ...previous,
-            markets: subscription.markets,
-        }
+        previous.markets = subscription.markets
+        return
     }
     const updatedMarkets = previous.markets
     
@@ -111,21 +119,16 @@ function addOrUpdateMarkets<F extends IFixture, M extends IMarket, L extends ILi
             updatedMarkets.push(newMarket)
         }
     })
-    return {
-        ...previous,
-        markets: [...updatedMarkets],
-    }
 }
-function deleteMarkets<F extends IFixture, M extends IMarket, L extends ILivescore>(previous: IEvent<F, M, L>, subscription: IEventSubscription<F, M, L>): IEvent<F, M, L> {
+
+
+function deleteMarketsInplace<F extends IFixture, M extends IMarket, L extends ILivescore>(previous: IEvent<F, M, L>, subscription: IEventSubscription<F, M, L>): void {
     if (!previous.markets || !subscription.markets) {
-        // 本來就沒markets，相當於不用更新
-        return previous
+        return
     }
-    return {
-        ...previous,
-        markets: previous.markets.filter(m => !subscription.markets?.find(deletedMarket => deletedMarket.id === m.id)),
-    }
+    previous.markets = previous.markets.filter(m => !subscription.markets?.find(deletedMarket => deletedMarket.id === m.id))
 }
+
 
 function cloneEvent<F extends IFixture, M extends IMarket, L extends ILivescore>(event: IEvent<F, M, L>): IEvent<F, M, L> {
     return {
@@ -138,52 +141,63 @@ function cloneEvent<F extends IFixture, M extends IMarket, L extends ILivescore>
     }
 }
 
-function subscriptionsToPrependGroups<F extends IFixture, M extends IMarket, L extends ILivescore>(subscriptions: IEventSubscription<F, M, L>[]): IEventsWithLeagueGroup<F, M, L>[] {
+// output的更新為inplace, 不過該function還是會回傳新的Event
+function addEventInplace<F extends IFixture, M extends IMarket, L extends ILivescore>(
+    output: IEventsWithLeagueGroup<F, M, L>[],
+    subscription: IEventSubscription<F, M, L>,
+): IEvent<F, M, L> | null {
+    if (!subscription.fixture) {
+        return null
+    }
 
-    const output: IEventsWithLeagueGroup<F, M, L>[] = []
+    const newEvent = {
+        fixture: subscription.fixture,
+        markets: subscription.markets ?? [],
+        livescore: subscription.livescore ?? undefined,
+    }
 
-    subscriptions.forEach(s => {
-        if (!s.fixture) {
-            return
-        }
-        const exists = output.find(el => el.leagueId === s.fixture?.leagueId)
-        if (exists) {
-            exists.events.push({
-                fixture: s.fixture,
-                markets: s.markets ?? [],
-                livescore: s.livescore ?? undefined,
-            })
-            return
-        }
-
-        output.push({
-            leagueId: s.fixture.leagueId,
-            leagueLocaleName: s.fixture.leagueLocaleName,
-            eventsCount: 1,
-            hasData: true,
-            events: [{
-                fixture: s.fixture,
-                markets: s.markets ?? [],
-                livescore: s.livescore ?? undefined,
-            }],
+    // 有找到league就在league內新增event
+    const exists = output.find(el => el.leagueId === subscription.fixture?.leagueId)
+    if (exists) {
+        exists.events.push(newEvent)
+        // sort fixtures.startedAt ASC
+        exists.events.sort((a, b) => {
+            const aTime = a.fixture.startedAt ? new Date(a.fixture.startedAt).getTime() : 0
+            const bTime = b.fixture.startedAt ? new Date(b.fixture.startedAt).getTime() : 0
+            return aTime - bTime
         })
+        return newEvent
+    }
+
+    // 沒找到league就新增league
+    output.push({
+        leagueId: subscription.fixture.leagueId,
+        leagueLocaleName: subscription.fixture.leagueLocaleName,
+        eventsCount: 1,
+        hasData: true,
+        events: [newEvent],
     })
+    // sort leagues by weight DESC, 如果events[0]不存在就排後面
+    output.sort((a, b) => (b.events[0]?.fixture.league.weight ?? 0) - (a.events[0]?.fixture.league.weight ?? 0))
 
-    output.forEach(row => row.eventsCount = row.events.length)
-
-    return output
+    return newEvent
 }
 
 export function reduceEventSubscriptions<F extends IFixture, M extends IMarket, L extends ILivescore>(
     data: IEventsWithLeagueGroup<F, M, L>[], eventSubscriptions: IEventSubscription<F, M, L>[]): IEventsWithLeagueGroup<F, M, L>[] {
 
+    // fixtureId -> event
     const eventsMap: { [key: string]: IEvent<F, M, L> } = {}
     const updatedfixtureIds = new Set<string>()
-    const deletedFixtureIds = new Set<string>()
-    const prependSubscriptions: IEventSubscription<F, M, L>[] = []
+    // const deletedFixtureIds = new Set<string>()
+    // const prependSubscriptions: IEventSubscription<F, M, L>[] = []
+
+    // 先shallow copy一份，避免影響到原本的data
+    // 接著對output做inplace修改來提升效率
+    const output: IEventsWithLeagueGroup<F, M, L>[] = [...data]
 
     // 先用指標登錄，方便索引
-    data.forEach(row => {
+    output.forEach(row => {
         row.events.forEach(event => {
             if (event.fixture) {
                 eventsMap[event.fixture.id] = event
@@ -199,13 +213,16 @@ export function reduceEventSubscriptions<F extends IFixture, M extends IMarket, 
         case SubscriptionMessageType.addOrUpdateEvents:
             const oldEvent = eventsMap[msg.fixtureId]
             if (!oldEvent) {
-                // events原本就不存在 -> prepend
-                prependSubscriptions.push(msg)
+                // events原本就不存在 -> add
+                const newEvent = addEventInplace(output, msg)
+                if (newEvent) {
+                    eventsMap[msg.fixtureId] = newEvent
+                }
                 break
             }
 
             // 找到event
-            eventsMap[msg.fixtureId] = updateEvent(oldEvent, msg)
+            updateEventInplace(oldEvent, msg)
             updatedfixtureIds.add(msg.fixtureId)
                 
             break
@@ -215,7 +232,7 @@ export function reduceEventSubscriptions<F extends IFixture, M extends IMarket, 
                 // 找不到就不要更新
                 break
             }
-            eventsMap[msg.fixtureId] = addOrUpdateMarkets(oldEventForMarket, msg)
+            addOrUpdateMarketsInplace(oldEventForMarket, msg)
             updatedfixtureIds.add(msg.fixtureId)
 
             break
@@ -236,9 +253,12 @@ export function reduceEventSubscriptions<F extends IFixture, M extends IMarket, 
 
             break
         case SubscriptionMessageType.deleteEvents:
-            if (eventsMap[msg.fixtureId]) {
-                deletedFixtureIds.add(msg.fixtureId)
-            }
+            delete eventsMap[msg.fixtureId]
+            output.forEach(row => {
+                if (row.events.find(event => event.fixture.id === msg.fixtureId)) {
+                    row.events = row.events.filter(event => event.fixture.id !== msg.fixtureId)
+                }
+            })
             break
         case SubscriptionMessageType.deleteMarkets:
             const oldEventForDeleteMarket = eventsMap[msg.fixtureId]
@@ -246,7 +266,7 @@ export function reduceEventSubscriptions<F extends IFixture, M extends IMarket, 
                 // 找不到就不要更新
                 break
             }
-            eventsMap[msg.fixtureId] = deleteMarkets(oldEventForDeleteMarket, msg)
+            deleteMarketsInplace(oldEventForDeleteMarket, msg)
             updatedfixtureIds.add(msg.fixtureId)
             break
         
@@ -256,11 +276,12 @@ export function reduceEventSubscriptions<F extends IFixture, M extends IMarket, 
         }
     })
 
-    const prepends = subscriptionsToPrependGroups(prependSubscriptions)
-    return [...prepends, ...data.map(row => {
+    // const prepends = subscriptionsToPrependGroups(prependSubscriptions)
+    return [...output.map(row => {
         return {
             ...row,
-            events: row.events.filter(event => !deletedFixtureIds.has(event.fixture.id)).map(event => {
+            events: row.events.map(event => {
+                // 如果該event有被更新過，就clone一份新的event比較安全
                 if (event.fixture && updatedfixtureIds.has(event.fixture.id)) {
                     return cloneEvent(eventsMap[event.fixture.id])
                 }

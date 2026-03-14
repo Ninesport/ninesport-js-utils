@@ -248,6 +248,10 @@ const initState = [
                     "locationId": "251",
                     "eventStatus": 1,
                     "leagueId": "23708",
+                    "league": {
+                        "id": "23708",
+                        "weight": 1,
+                    },
                     "statscoreWidgetId": "",
                 },
                 "livescore": {
