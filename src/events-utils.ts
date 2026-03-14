@@ -159,6 +159,10 @@ function addEventInplace<F extends IFixture, M extends IMarket, L extends ILives
     // 有找到league就在league內新增event
     const exists = output.find(el => el.leagueId === subscription.fixture?.leagueId)
     if (exists) {
+        if (!exists.hasData) {
+            // 如果沒有data，代表這個group沒有展開，不需要更新他，否則一直新增下去，前端RAM會爆掉
+            return null
+        }
         exists.events.push(newEvent)
         // sort fixtures.startedAt ASC
         exists.events.sort((a, b) => {
@@ -174,7 +178,8 @@ function addEventInplace<F extends IFixture, M extends IMarket, L extends ILives
         leagueId: subscription.fixture.leagueId,
         leagueLocaleName: subscription.fixture.leagueLocaleName,
         eventsCount: 1,
-        hasData: true,
+        // 使用false讓UI不要展開此項目
+        hasData: false,
         events: [newEvent],
     })
     // sort leagues by weight DESC, 如果events[0]不存在就排後面
@@ -189,8 +194,6 @@ export function reduceEventSubscriptions<F extends IFixture, M extends IMarket, 
     // fixtureId -> event
     const eventsMap: { [key: string]: IEvent<F, M, L> } = {}
     const updatedfixtureIds = new Set<string>()
-    // const deletedFixtureIds = new Set<string>()
-    // const prependSubscriptions: IEventSubscription<F, M, L>[] = []
 
     // 先shallow copy一份，避免影響到原本的data
     // 接著對output做inplace修改來提升效率
@@ -198,6 +201,10 @@ export function reduceEventSubscriptions<F extends IFixture, M extends IMarket, 
 
     // 先用指標登錄，方便索引
     output.forEach(row => {
+        if (!row.hasData) {
+            // 如果沒有data，代表這個group沒有展開，不需要對裡面做任何操作
+            return
+        }
         row.events.forEach(event => {
             if (event.fixture) {
                 eventsMap[event.fixture.id] = event
@@ -276,7 +283,6 @@ export function reduceEventSubscriptions<F extends IFixture, M extends IMarket, 
         }
     })
 
-    // const prepends = subscriptionsToPrependGroups(prependSubscriptions)
     return [...output.map(row => {
         return {
             ...row,
