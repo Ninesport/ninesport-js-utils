@@ -170,6 +170,7 @@ function addEventInplace<F extends IFixture, M extends IMarket, L extends ILives
             const bTime = b.fixture.startedAt ? new Date(b.fixture.startedAt).getTime() : 0
             return aTime - bTime
         })
+        exists.eventsCount = exists.events.length
         return newEvent
     }
 
@@ -261,11 +262,19 @@ export function reduceEventSubscriptions<F extends IFixture, M extends IMarket, 
             break
         case SubscriptionMessageType.deleteEvents:
             delete eventsMap[msg.fixtureId]
-            output.forEach(row => {
+            let removeIndex = -1
+            output.forEach((row, idx) => {
                 if (row.events.find(event => event.fixture.id === msg.fixtureId)) {
                     row.events = row.events.filter(event => event.fixture.id !== msg.fixtureId)
                 }
+                row.eventsCount = row.events.length
+                if (row.eventsCount === 0) {
+                    removeIndex = idx
+                }
             })
+            if (removeIndex !== -1) {
+                output.splice(removeIndex, 1)
+            }
             break
         case SubscriptionMessageType.deleteMarkets:
             const oldEventForDeleteMarket = eventsMap[msg.fixtureId]
