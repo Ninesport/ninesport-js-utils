@@ -119,6 +119,7 @@ function addOrUpdateMarketsInplace<F extends IFixture, M extends IMarket, L exte
             updatedMarkets.push(newMarket)
         }
     })
+
 }
 
 
@@ -225,6 +226,7 @@ export function reduceEventSubscriptions<F extends IFixture, M extends IMarket, 
                 const newEvent = addEventInplace(output, msg)
                 if (newEvent) {
                     eventsMap[msg.fixtureId] = newEvent
+                    updatedfixtureIds.add(msg.fixtureId)
                 }
                 break
             }
@@ -263,15 +265,27 @@ export function reduceEventSubscriptions<F extends IFixture, M extends IMarket, 
         case SubscriptionMessageType.deleteEvents:
             delete eventsMap[msg.fixtureId]
             let removeIndex = -1
-            output.forEach((row, idx) => {
-                if (row.events.find(event => event.fixture.id === msg.fixtureId)) {
-                    row.events = row.events.filter(event => event.fixture.id !== msg.fixtureId)
+            for (let idx = 0; idx < output.length; idx++) {
+                const row = output[idx]
+                // 檢查該 fixture 是否存在於此 row 中
+                const targetIndex = row.events.findIndex(event => event.fixture.id === msg.fixtureId)
+                if (targetIndex !== -1) {
+                    // 建立一個新的 events array 避免 mutate 到原本的 data 陣列 (shallow copy 概念)
+                    row.events = [
+                        ...row.events.slice(0, targetIndex),
+                        ...row.events.slice(targetIndex + 1),
+                    ]
+                    // 只把有變動的 group 的 eventsCount 減 1，避免在 hasData 為 false 時數量計算錯誤
+                    row.eventsCount = Math.max(0, row.eventsCount - 1)
+                    
+                    // 如果整個 group 沒有賽事了，記錄下來以便移除
+                    if (row.eventsCount === 0) {
+                        removeIndex = idx
+                    }
+                    // 一個事件只會屬於一個聯盟，找到即可跳出迴圈
+                    break
                 }
-                row.eventsCount = row.events.length
-                if (row.eventsCount === 0) {
-                    removeIndex = idx
-                }
-            })
+            }
             if (removeIndex !== -1) {
                 output.splice(removeIndex, 1)
             }
