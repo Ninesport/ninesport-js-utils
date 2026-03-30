@@ -3,6 +3,10 @@ import { reduceEventSubscriptions } from "../src/events-utils"
 const initState = [
     {
         "leagueLocaleName": "Great Britain. General Election. Rhondda and Ogmore constituency. Winner",
+        "league": {
+            "id": "23708",
+            "weight": 1,
+        },
         "eventsCount": 1,
         "hasData": true,
         "events": [

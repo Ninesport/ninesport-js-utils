@@ -7,7 +7,7 @@ export interface ILeague {
 
 export interface IFixture {
     id: string
-    startedAt?: string | Date
+    startedAt?: string | Date | null
     leagueId: string
     leagueLocaleName: string
     league: ILeague
@@ -45,6 +45,7 @@ enum SubscriptionMessageType {
 export interface IEventsWithLeagueGroup<F extends IFixture, M extends IMarket, L extends ILivescore> {
     leagueId: string
     leagueLocaleName: string
+    league: ILeague
     eventsCount: number
     hasData: boolean
     events: IEvent<F, M, L>[]
@@ -179,6 +180,7 @@ function addEventInplace<F extends IFixture, M extends IMarket, L extends ILives
     output.push({
         leagueId: subscription.fixture.leagueId,
         leagueLocaleName: subscription.fixture.leagueLocaleName,
+        league: subscription.fixture.league,
         eventsCount: 1,
         // 使用false讓UI不要展開此項目
         hasData: false,
