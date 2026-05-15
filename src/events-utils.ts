@@ -1,5 +1,3 @@
-import Decimal from "decimal.js"
-
 export interface ILeague {
     id: string
     weight: number
@@ -21,7 +19,7 @@ export interface IBet {
 
 export interface IMarket {
     id: string
-    bets: IBet[][]
+    bets: (IBet | null | undefined)[][]
 }
 
 export interface ILivescore {
@@ -80,47 +78,21 @@ function addOrUpdateMarketsInplace<F extends IFixture, M extends IMarket, L exte
         return
     }
     const updatedMarkets = previous.markets
+    const previousMarketsMap: { [key: string]: number } = {}
+    updatedMarkets.forEach((market, idx) => {
+        previousMarketsMap[market.id] = idx
+    })
     
     const newMarkets = subscription.markets
-
-    let found: boolean
+    
     newMarkets.forEach(newMarket => {
-        found = false
-        for (let i = 0; i < updatedMarkets.length; i++) {
-            const um = updatedMarkets[i]
-            if (um.id === newMarket.id) {
-                const previousBetsMap: { [key: string]: IBet } = {}
-                um.bets.forEach(rows => {
-                    rows.forEach(bet => {
-                        previousBetsMap[bet.id] = bet
-                    })
-                })
-                newMarket.bets.forEach(rows => {
-                    rows.forEach(bet => {
-                        const previousBet = previousBetsMap[bet.id]
-                        if (previousBet) {
-                            const previousPrice = new Decimal(previousBet.actualPrice)
-                            const currentPrice = new Decimal(bet.actualPrice)
-                            if (currentPrice.gt(previousPrice)) {
-                                bet.isPriceHigher = true
-                            } else if (currentPrice.lt(previousPrice)) {
-                                bet.isPriceHigher = false
-                            } else {
-                                bet.isPriceHigher = null
-                            }
-                        }
-                    })
-                })
-                updatedMarkets[i] = newMarket
-                found = true
-                break
-            }
-        }
-        if (!found) {
+        const previousMarketIdx = previousMarketsMap[newMarket.id]
+        if (previousMarketIdx === undefined) {
             updatedMarkets.push(newMarket)
+        } else {
+            updatedMarkets[previousMarketIdx] = newMarket
         }
     })
-
 }
 
 
