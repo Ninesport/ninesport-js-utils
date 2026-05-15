@@ -19,6 +19,7 @@ export interface IBet {
 
 export interface IMarket {
     id: string
+    marketType: number
     bets: (IBet | null | undefined)[][]
 }
 
@@ -85,14 +86,22 @@ function addOrUpdateMarketsInplace<F extends IFixture, M extends IMarket, L exte
     
     const newMarkets = subscription.markets
     
+    let shouldSort = false
     newMarkets.forEach(newMarket => {
         const previousMarketIdx = previousMarketsMap[newMarket.id]
         if (previousMarketIdx === undefined) {
             updatedMarkets.push(newMarket)
+            shouldSort = true
         } else {
             updatedMarkets[previousMarketIdx] = newMarket
         }
     })
+    
+    if (shouldSort) {
+        updatedMarkets.sort((a, b) => {
+            return a.marketType - b.marketType
+        })
+    }
 }
 
 
