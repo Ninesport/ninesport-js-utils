@@ -5,6 +5,7 @@ export interface ILeague {
 
 export interface IFixture {
     id: string
+    isHot: boolean
     startedAt?: string | Date | null
     leagueId: string
     leagueLocaleName: string
@@ -46,6 +47,7 @@ export interface IEventsWithLeagueGroup<F extends IFixture, M extends IMarket, L
     leagueLocaleName: string
     league: ILeague
     eventsCount: number
+    eventsHotCount: number
     hasData: boolean
     events: IEvent<F, M, L>[]
 }
@@ -154,6 +156,7 @@ function addEventInplace<F extends IFixture, M extends IMarket, L extends ILives
             return aTime - bTime
         })
         exists.eventsCount = exists.events.length
+        exists.eventsHotCount = exists.events.filter(event => event.fixture.isHot).length
         return newEvent
     }
 
@@ -163,6 +166,7 @@ function addEventInplace<F extends IFixture, M extends IMarket, L extends ILives
         leagueLocaleName: subscription.fixture.leagueLocaleName,
         league: subscription.fixture.league,
         eventsCount: 1,
+        eventsHotCount: subscription.fixture.isHot ? 1 : 0,
         // 使用false讓UI不要展開此項目
         hasData: false,
         events: [newEvent],
@@ -260,6 +264,7 @@ export function reduceEventSubscriptions<F extends IFixture, M extends IMarket, 
                     ]
                     // 只把有變動的 group 的 eventsCount 減 1，避免在 hasData 為 false 時數量計算錯誤
                     row.eventsCount = Math.max(0, row.eventsCount - 1)
+                    row.eventsHotCount = row.events.filter(e => e.fixture.isHot).length
                     
                     // 如果整個 group 沒有賽事了，記錄下來以便移除
                     if (row.eventsCount === 0) {

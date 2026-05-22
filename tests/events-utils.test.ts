@@ -8,6 +8,7 @@ const initState = [
             "weight": 1,
         },
         "eventsCount": 1,
+        "eventsHotCount": 1,
         "hasData": true,
         "events": [
             {
@@ -241,6 +242,7 @@ const initState = [
                         },
                     ],
                     "isOutright": false,
+                    "isHot": true,
                     "id": "18825",
                     "locationLocaleName": "International",
                     "leagueLocaleName": "Great Britain. General Election. Rhondda and Ogmore constituency. Winner",
