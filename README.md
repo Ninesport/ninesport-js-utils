@@ -263,7 +263,67 @@ reduceEventSubscriptions<F, M, L>(data: IEventsWithLeagueGroup<F, M, L>[], event
 
 一個新的 `IEventsWithLeagueGroup[]` 陣列，代表已應用所有更新的最終狀態。此函式為 immutable，不會修改傳入的 `data` 參數。
 
+---
 
+### `reduceEventSubscriptionsForSingleEvent`
+
+此函式是 `reduceEventSubscriptions` 的單一賽事版本。它針對單一 `IEvent` 套用 `eventSubscriptions`，只處理 `fixtureId` 與 `data.fixture.id` 相符的訊息，並回傳更新後的賽事物件。適用於只需關注單場賽事即時更新的場景（例如賽事詳情頁）。
+
+**簽名**
+```typescript
+reduceEventSubscriptionsForSingleEvent<F, M, L>(data: IEvent<F, M, L>, eventSubscriptions: IEventSubscription<F, M, L>[]): IEvent<F, M, L> | null
+```
+
+**參數**
+- `data` (`IEvent`): 目前的單一賽事資料。
+- `eventSubscriptions` (`IEventSubscription[]`): 一個包含多個更新訊息的陣列。支援的訊息類型 (`type`) 包括：
+  - `addOrUpdateEvents`: 更新賽事的 fixture、markets、livescore。
+  - `addOrUpdateMarkets`: 新增或更新盤口（依 `marketType` 排序）。
+  - `updateLivescores`: 更新即時比分。
+  - `deleteEvents`: 刪除賽事（函式將回傳 `null`）。
+  - `deleteMarkets`: 刪除指定盤口。
+
+**回傳值**
+
+- 若賽事被刪除（收到 `deleteEvents` 類型），回傳 `null`。
+- 若有任何更新，回傳一個新的 `IEvent` 物件（clone 後的副本），不會修改傳入的 `data`。
+- 若沒有任何相符的更新訊息，直接回傳原始的 `data` 參考。
+
+**範例**
+
+```typescript
+import { reduceEventSubscriptionsForSingleEvent } from 'ninesport-js-utils/events';
+
+// 假設已有一個賽事資料
+const currentEvent = {
+  fixture: { id: 'fixture-1', isHot: true, startedAt: '2024-01-01T12:00:00Z', leagueId: 'league-1', leagueLocaleName: 'English Premier League', league: { id: 'league-1', weight: 100 } },
+  markets: [{ id: 'market-1', marketType: 1, bets: [] }],
+  livescore: { id: 'livescore-1' },
+};
+
+// 範例 1: 更新即時比分
+const subscriptions = [
+  { type: 'updateLivescores', fixtureId: 'fixture-1', livescore: { id: 'livescore-1-updated' } },
+];
+const updatedEvent = reduceEventSubscriptionsForSingleEvent(currentEvent, subscriptions);
+console.log(updatedEvent?.livescore?.id); // "livescore-1-updated"
+
+// 範例 2: 刪除賽事
+const deleteSubscriptions = [
+  { type: 'deleteEvents', fixtureId: 'fixture-1' },
+];
+const deletedEvent = reduceEventSubscriptionsForSingleEvent(currentEvent, deleteSubscriptions);
+console.log(deletedEvent); // null
+
+// 範例 3: 不相符的 fixtureId 不會影響結果
+const otherSubscriptions = [
+  { type: 'updateLivescores', fixtureId: 'fixture-999', livescore: { id: 'other' } },
+];
+const unchangedEvent = reduceEventSubscriptionsForSingleEvent(currentEvent, otherSubscriptions);
+console.log(unchangedEvent === currentEvent); // true (回傳原始參考)
+```
+
+---
 
 ## `toPrice` 函數
 

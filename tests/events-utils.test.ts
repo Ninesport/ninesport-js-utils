@@ -1,4 +1,4 @@
-import { reduceEventSubscriptions } from "../src/events-utils"
+import { reduceEventSubscriptions, reduceEventSubscriptionsForSingleEvent } from "../src/events-utils"
 
 const initState = [
     {
@@ -383,4 +383,136 @@ test("test reduceEventSubscriptions function", () => {
         })
     })
     
+})
+
+test("test reduceEventSubscriptionsForSingleEvent - addOrUpdateMarkets", () => {
+    const singleEvent = initState[0].events[0]
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const fixture = singleEvent.fixture
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const market = singleEvent.markets![0]
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const livescore = singleEvent.livescore
+
+    // 測試 addOrUpdateMarkets：應新增 market 到 event 中
+    const result = reduceEventSubscriptionsForSingleEvent<typeof fixture, typeof market, typeof livescore>(
+        singleEvent, [addOrUpdateMarketsSubscription],
+    )
+
+    expect(result).not.toBeNull()
+    let found = false
+    result!.markets?.forEach(m => {
+        for (let i = 0; i < m.bets.length; i++) {
+            const bet = m.bets[i]
+            for (let j = 0; j < bet.length; j++) {
+                const b = bet[j]
+                if (b!.id === "2218561") {
+                    found = true
+                }
+            }
+        }
+    })
+    expect(found).toBe(true)
+})
+
+test("test reduceEventSubscriptionsForSingleEvent - deleteMarkets", () => {
+    const singleEvent = initState[0].events[0]
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const fixture = singleEvent.fixture
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const market = singleEvent.markets![0]
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const livescore = singleEvent.livescore
+
+    // 先新增 market，再刪除
+    const afterAdd = reduceEventSubscriptionsForSingleEvent<typeof fixture, typeof market, typeof livescore>(
+        singleEvent, [addOrUpdateMarketsSubscription],
+    )
+    expect(afterAdd).not.toBeNull()
+
+    const afterDelete = reduceEventSubscriptionsForSingleEvent<typeof fixture, typeof market, typeof livescore>(
+        afterAdd!, [deleteMarketsSubscription],
+    )
+    expect(afterDelete).not.toBeNull()
+    afterDelete!.markets?.forEach(m => {
+        for (let i = 0; i < m.bets.length; i++) {
+            const bet = m.bets[i]
+            for (let j = 0; j < bet.length; j++) {
+                const b = bet[j]
+                expect(b!.id).not.toBe("2218561")
+            }
+        }
+    })
+})
+
+test("test reduceEventSubscriptionsForSingleEvent - updateLivescores", () => {
+    const singleEvent = initState[0].events[0]
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const fixture = singleEvent.fixture
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const market = singleEvent.markets![0]
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const livescore = singleEvent.livescore
+
+    const result = reduceEventSubscriptionsForSingleEvent<typeof fixture, typeof market, typeof livescore>(
+        singleEvent, [updateLiveScoresSubscription],
+    )
+
+    expect(result).not.toBeNull()
+    expect(result!.livescore?.eventStatus).toBe(updateLiveScoresSubscription.livescore?.eventStatus)
+})
+
+test("test reduceEventSubscriptionsForSingleEvent - deleteEvents 回傳 null", () => {
+    const singleEvent = initState[0].events[0]
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const fixture = singleEvent.fixture
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const market = singleEvent.markets![0]
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const livescore = singleEvent.livescore
+
+    const result = reduceEventSubscriptionsForSingleEvent<typeof fixture, typeof market, typeof livescore>(
+        singleEvent, [subscriptionDeleteFixture],
+    )
+
+    expect(result).toBeNull()
+})
+
+test("test reduceEventSubscriptionsForSingleEvent - fixtureId 不匹配時不更新", () => {
+    const singleEvent = initState[0].events[0]
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const fixture = singleEvent.fixture
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const market = singleEvent.markets![0]
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const livescore = singleEvent.livescore
+
+    const mismatchedSubscription = {
+        ...addOrUpdateMarketsSubscription,
+        fixtureId: "99999",  // 不匹配的 fixtureId
+    }
+
+    const result = reduceEventSubscriptionsForSingleEvent<typeof fixture, typeof market, typeof livescore>(
+        singleEvent, [mismatchedSubscription],
+    )
+
+    // fixtureId 不匹配，應回傳原始參照
+    expect(result).toBe(singleEvent)
+})
+
+test("test reduceEventSubscriptionsForSingleEvent - 沒有任何更新時回傳原始參照", () => {
+    const singleEvent = initState[0].events[0]
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const fixture = singleEvent.fixture
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const market = singleEvent.markets![0]
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const livescore = singleEvent.livescore
+
+    const result = reduceEventSubscriptionsForSingleEvent<typeof fixture, typeof market, typeof livescore>(
+        singleEvent, [],
+    )
+
+    // 沒有 subscription，應回傳原始參照（referential equality）
+    expect(result).toBe(singleEvent)
 })

@@ -307,3 +307,72 @@ export function reduceEventSubscriptions<F extends IFixture, M extends IMarket, 
         }
     })]
 }
+
+/**
+ * 針對單一 IEvent 套用 eventSubscriptions 並回傳更新後的 event。
+ * 只處理 fixtureId 與 data.fixture.id 相符的 subscription。
+ * 若收到 deleteEvents 類型，回傳 null 表示該 event 已被刪除。
+ */
+export function reduceEventSubscriptionsForSingleEvent<F extends IFixture, M extends IMarket, L extends ILivescore>(
+    data: IEvent<F, M, L>, eventSubscriptions: IEventSubscription<F, M, L>[],
+): IEvent<F, M, L> | null {
+
+    const fixtureId = data.fixture?.id
+    if (!fixtureId) {
+        return data
+    }
+
+    // 先clone一份，避免影響到原本的data，接著對clone做inplace修改來提升效率
+    // 需要額外 shallow copy markets 陣列，因為 addOrUpdateMarketsInplace 會 push 新元素
+    const event: IEvent<F, M, L> = {
+        ...cloneEvent(data),
+        markets: data.markets ? [...data.markets] : [],
+    }
+    let updated = false
+    let deleted = false
+
+    eventSubscriptions.forEach(msg => {
+        // 只處理 fixtureId 相符的 subscription
+        if (msg.fixtureId !== fixtureId) {
+            return
+        }
+
+        switch (msg.type) {
+        case SubscriptionMessageType.reset:
+            // ignore
+            break
+        case SubscriptionMessageType.addOrUpdateEvents:
+            updateEventInplace(event, msg)
+            updated = true
+            break
+        case SubscriptionMessageType.addOrUpdateMarkets:
+            addOrUpdateMarketsInplace(event, msg)
+            updated = true
+            break
+        case SubscriptionMessageType.updateLivescores:
+            if (!msg.livescore) {
+                break
+            }
+            event.livescore = msg.livescore
+            updated = true
+            break
+        case SubscriptionMessageType.deleteEvents:
+            deleted = true
+            break
+        case SubscriptionMessageType.deleteMarkets:
+            deleteMarketsInplace(event, msg)
+            updated = true
+            break
+        default:
+            console.log(`unknown message type: ${msg.type}`)
+            break
+        }
+    })
+
+    if (deleted) {
+        return null
+    }
+
+    // 如果有更新過就回傳clone後的event，否則回傳原本的data
+    return updated ? event : data
+}
