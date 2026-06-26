@@ -516,3 +516,282 @@ test("test reduceEventSubscriptionsForSingleEvent - 沒有任何更新時回傳�
     // 沒有 subscription，應回傳原始參照（referential equality）
     expect(result).toBe(singleEvent)
 })
+
+// ========== isPriceHigher 測試 ==========
+
+// 建立一個用於 isPriceHigher 測試的輔助函式
+function createIsPriceHigherTestData() {
+    const testState = [
+        {
+            leagueLocaleName: "Test League",
+            league: { id: "L1", weight: 1 },
+            eventsCount: 1,
+            eventsHotCount: 0,
+            hasData: true,
+            events: [
+                {
+                    fixture: {
+                        id: "F1",
+                        isHot: false,
+                        startedAt: "2025-01-01T00:00:00Z",
+                        leagueId: "L1",
+                        leagueLocaleName: "Test League",
+                        league: { id: "L1", weight: 1 },
+                    },
+                    markets: [
+                        {
+                            id: "M1",
+                            marketType: 1,
+                            bets: [
+                                [
+                                    {
+                                        id: "B1",
+                                        actualPrice: "1.50",
+                                        isPriceHigher: null,
+                                    },
+                                ],
+                                [
+                                    {
+                                        id: "B2",
+                                        actualPrice: "2.00",
+                                        isPriceHigher: null,
+                                    },
+                                ],
+                                [
+                                    {
+                                        id: "B3",
+                                        actualPrice: "3.00",
+                                        isPriceHigher: null,
+                                    },
+                                ],
+                            ],
+                        },
+                    ],
+                    livescore: { id: "LS1" },
+                },
+            ],
+            leagueId: "L1",
+        },
+    ]
+    return testState
+}
+
+test("test isPriceHigher - 價格上漲時應標記為 true", () => {
+    const testState = createIsPriceHigherTestData()
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const fixture = testState[0].events[0].fixture
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const market = testState[0].events[0].markets[0]
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const livescore = testState[0].events[0].livescore
+
+    // B1 價格從 1.50 上漲到 2.00
+    const subscription = {
+        type: "addOrUpdateMarkets",
+        fixtureId: "F1",
+        markets: [
+            {
+                id: "M1",
+                marketType: 1,
+                bets: [
+                    [{ id: "B1", actualPrice: "2.00", isPriceHigher: null }],
+                    [{ id: "B2", actualPrice: "2.00", isPriceHigher: null }],
+                    [{ id: "B3", actualPrice: "3.00", isPriceHigher: null }],
+                ],
+            },
+        ],
+    }
+
+    // 測試 reduceEventSubscriptions
+    const results = reduceEventSubscriptions<typeof fixture, typeof market, typeof livescore>(
+        testState, [subscription],
+    )
+    const updatedBetB1 = results[0].events[0].markets![0].bets[0][0]
+    expect(updatedBetB1!.isPriceHigher).toBe(true)
+
+    // 測試 reduceEventSubscriptionsForSingleEvent
+    const singleResult = reduceEventSubscriptionsForSingleEvent<typeof fixture, typeof market, typeof livescore>(
+        testState[0].events[0], [subscription],
+    )
+    const singleUpdatedBetB1 = singleResult!.markets![0].bets[0][0]
+    expect(singleUpdatedBetB1!.isPriceHigher).toBe(true)
+})
+
+test("test isPriceHigher - 價格下跌時應標記為 false", () => {
+    const testState = createIsPriceHigherTestData()
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const fixture = testState[0].events[0].fixture
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const market = testState[0].events[0].markets[0]
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const livescore = testState[0].events[0].livescore
+
+    // B1 價格從 1.50 下跌到 1.20
+    const subscription = {
+        type: "addOrUpdateMarkets",
+        fixtureId: "F1",
+        markets: [
+            {
+                id: "M1",
+                marketType: 1,
+                bets: [
+                    [{ id: "B1", actualPrice: "1.20", isPriceHigher: null }],
+                    [{ id: "B2", actualPrice: "2.00", isPriceHigher: null }],
+                    [{ id: "B3", actualPrice: "3.00", isPriceHigher: null }],
+                ],
+            },
+        ],
+    }
+
+    // 測試 reduceEventSubscriptions
+    const results = reduceEventSubscriptions<typeof fixture, typeof market, typeof livescore>(
+        testState, [subscription],
+    )
+    const updatedBetB1 = results[0].events[0].markets![0].bets[0][0]
+    expect(updatedBetB1!.isPriceHigher).toBe(false)
+
+    // 測試 reduceEventSubscriptionsForSingleEvent
+    const singleResult = reduceEventSubscriptionsForSingleEvent<typeof fixture, typeof market, typeof livescore>(
+        testState[0].events[0], [subscription],
+    )
+    const singleUpdatedBetB1 = singleResult!.markets![0].bets[0][0]
+    expect(singleUpdatedBetB1!.isPriceHigher).toBe(false)
+})
+
+test("test isPriceHigher - 價格不變時應保持 null", () => {
+    const testState = createIsPriceHigherTestData()
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const fixture = testState[0].events[0].fixture
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const market = testState[0].events[0].markets[0]
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const livescore = testState[0].events[0].livescore
+
+    // 所有價格都不變
+    const subscription = {
+        type: "addOrUpdateMarkets",
+        fixtureId: "F1",
+        markets: [
+            {
+                id: "M1",
+                marketType: 1,
+                bets: [
+                    [{ id: "B1", actualPrice: "1.50", isPriceHigher: null }],
+                    [{ id: "B2", actualPrice: "2.00", isPriceHigher: null }],
+                    [{ id: "B3", actualPrice: "3.00", isPriceHigher: null }],
+                ],
+            },
+        ],
+    }
+
+    // 測試 reduceEventSubscriptions
+    const results = reduceEventSubscriptions<typeof fixture, typeof market, typeof livescore>(
+        testState, [subscription],
+    )
+    results[0].events[0].markets![0].bets.forEach(row => {
+        row.forEach(bet => {
+            expect(bet!.isPriceHigher).toBeNull()
+        })
+    })
+
+    // 測試 reduceEventSubscriptionsForSingleEvent
+    const singleResult = reduceEventSubscriptionsForSingleEvent<typeof fixture, typeof market, typeof livescore>(
+        testState[0].events[0], [subscription],
+    )
+    singleResult!.markets![0].bets.forEach(row => {
+        row.forEach(bet => {
+            expect(bet!.isPriceHigher).toBeNull()
+        })
+    })
+})
+
+test("test isPriceHigher - 混合情境：同一 market 中有上漲、下跌、不變的 bet", () => {
+    const testState = createIsPriceHigherTestData()
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const fixture = testState[0].events[0].fixture
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const market = testState[0].events[0].markets[0]
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const livescore = testState[0].events[0].livescore
+
+    // B1: 1.50 -> 2.00 (上漲), B2: 2.00 -> 1.50 (下跌), B3: 3.00 -> 3.00 (不變)
+    const subscription = {
+        type: "addOrUpdateMarkets",
+        fixtureId: "F1",
+        markets: [
+            {
+                id: "M1",
+                marketType: 1,
+                bets: [
+                    [{ id: "B1", actualPrice: "2.00", isPriceHigher: null }],
+                    [{ id: "B2", actualPrice: "1.50", isPriceHigher: null }],
+                    [{ id: "B3", actualPrice: "3.00", isPriceHigher: null }],
+                ],
+            },
+        ],
+    }
+
+    // 測試 reduceEventSubscriptions
+    const results = reduceEventSubscriptions<typeof fixture, typeof market, typeof livescore>(
+        testState, [subscription],
+    )
+    const marketResult = results[0].events[0].markets![0]
+    expect(marketResult.bets[0][0]!.isPriceHigher).toBe(true)   // B1 上漲
+    expect(marketResult.bets[1][0]!.isPriceHigher).toBe(false)  // B2 下跌
+    expect(marketResult.bets[2][0]!.isPriceHigher).toBeNull()    // B3 不變
+
+    // 測試 reduceEventSubscriptionsForSingleEvent
+    const singleResult = reduceEventSubscriptionsForSingleEvent<typeof fixture, typeof market, typeof livescore>(
+        testState[0].events[0], [subscription],
+    )
+    const singleMarketResult = singleResult!.markets![0]
+    expect(singleMarketResult.bets[0][0]!.isPriceHigher).toBe(true)   // B1 上漲
+    expect(singleMarketResult.bets[1][0]!.isPriceHigher).toBe(false)  // B2 下跌
+    expect(singleMarketResult.bets[2][0]!.isPriceHigher).toBeNull()    // B3 不變
+})
+
+test("test isPriceHigher - 新增的 bet（沒有前一版本）應保持 null", () => {
+    const testState = createIsPriceHigherTestData()
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const fixture = testState[0].events[0].fixture
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const market = testState[0].events[0].markets[0]
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const livescore = testState[0].events[0].livescore
+
+    // 新增一個之前不存在的 B99
+    const subscription = {
+        type: "addOrUpdateMarkets",
+        fixtureId: "F1",
+        markets: [
+            {
+                id: "M1",
+                marketType: 1,
+                bets: [
+                    [{ id: "B1", actualPrice: "1.50", isPriceHigher: null }],
+                    [{ id: "B2", actualPrice: "2.00", isPriceHigher: null }],
+                    [{ id: "B3", actualPrice: "3.00", isPriceHigher: null }],
+                    [{ id: "B99", actualPrice: "5.00", isPriceHigher: null }],
+                ],
+            },
+        ],
+    }
+
+    // 測試 reduceEventSubscriptions
+    const results = reduceEventSubscriptions<typeof fixture, typeof market, typeof livescore>(
+        testState, [subscription],
+    )
+    const marketResult = results[0].events[0].markets![0]
+    // B99 是新增的 bet，沒有前一版本，isPriceHigher 應保持 null
+    const newBet = marketResult.bets[3][0]
+    expect(newBet!.id).toBe("B99")
+    expect(newBet!.isPriceHigher).toBeNull()
+
+    // 測試 reduceEventSubscriptionsForSingleEvent
+    const singleResult = reduceEventSubscriptionsForSingleEvent<typeof fixture, typeof market, typeof livescore>(
+        testState[0].events[0], [subscription],
+    )
+    const singleNewBet = singleResult!.markets![0].bets[3][0]
+    expect(singleNewBet!.id).toBe("B99")
+    expect(singleNewBet!.isPriceHigher).toBeNull()
+})

@@ -1,3 +1,5 @@
+import Decimal from "decimal.js"
+
 export interface ILeague {
     id: string
     weight: number
@@ -95,6 +97,34 @@ function addOrUpdateMarketsInplace<F extends IFixture, M extends IMarket, L exte
             updatedMarkets.push(newMarket)
             shouldSort = true
         } else {
+            // compare bet price first
+            const previousMarket = updatedMarkets[previousMarketIdx]
+            const previousMarketBetsMap: { [key: string]: IBet } = {}
+            previousMarket.bets.forEach(row => {
+                row.forEach(bet => {
+                    if (bet) {
+                        previousMarketBetsMap[bet.id] = bet
+                    }
+                })
+            })
+            
+            newMarket.bets.forEach(row => {
+                row.forEach(bet => {
+                    if (!bet) {
+                        return
+                    }
+                    const previousBet = previousMarketBetsMap[bet.id]
+                    if (!previousBet) {
+                        return   
+                    }
+                    const previousPrice = new Decimal(previousBet.actualPrice)
+                    const afterPrice = new Decimal(bet.actualPrice)
+                    if (previousPrice.eq(afterPrice)) {
+                        return
+                    }
+                    bet.isPriceHigher = afterPrice.greaterThan(previousPrice)
+                })
+            })
             updatedMarkets[previousMarketIdx] = newMarket
         }
     })
