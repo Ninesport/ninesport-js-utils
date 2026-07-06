@@ -207,6 +207,24 @@ function addEventInplace<F extends IFixture, M extends IMarket, L extends ILives
     return newEvent
 }
 
+export function addOrUpdateSingleEventGroup<F extends IFixture, M extends IMarket, L extends ILivescore>(
+    data: IEventsWithLeagueGroup<F, M, L>[], singleEventGroup: IEventsWithLeagueGroup<F, M, L>): IEventsWithLeagueGroup<F, M, L>[] {
+
+    // 先shallow copy一份，避免影響到原本的data
+    // 接著對output做inplace修改來提升效率
+    const output: IEventsWithLeagueGroup<F, M, L>[] = [...data]
+
+    const existsIdx = output.findIndex(el => el.leagueId === singleEventGroup.leagueId)
+    if (existsIdx === -1) {
+        output.push(singleEventGroup)
+        output.sort((a, b) => (b.events[0]?.fixture.league.weight ?? 0) - (a.events[0]?.fixture.league.weight ?? 0))
+    } else {
+        output[existsIdx] = singleEventGroup
+    }
+
+    return output
+}
+
 export function reduceEventSubscriptions<F extends IFixture, M extends IMarket, L extends ILivescore>(
     data: IEventsWithLeagueGroup<F, M, L>[], eventSubscriptions: IEventSubscription<F, M, L>[]): IEventsWithLeagueGroup<F, M, L>[] {
 

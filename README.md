@@ -325,6 +325,72 @@ console.log(unchangedEvent === currentEvent); // true (回傳原始參考)
 
 ---
 
+### `addOrUpdateSingleEventGroup`
+
+此函式用於新增或更新單一聯賽分組資料（`IEventsWithLeagueGroup`）。如果該聯賽分組在原資料中不存在，則將其新增並依據第一個賽事的聯賽權重（`weight`）進行降序排序；如果已存在，則直接替換該聯賽分組資料。
+
+**簽名**
+```typescript
+addOrUpdateSingleEventGroup<F, M, L>(
+    data: IEventsWithLeagueGroup<F, M, L>[], 
+    singleEventGroup: IEventsWithLeagueGroup<F, M, L>
+): IEventsWithLeagueGroup<F, M, L>[]
+```
+
+**參數**
+- `data` (`IEventsWithLeagueGroup[]`): 目前的賽事資料狀態陣列。
+- `singleEventGroup` (`IEventsWithLeagueGroup`): 待新增或更新的單一聯賽分組資料。
+
+**回傳值**
+
+回傳一個新的 `IEventsWithLeagueGroup[]` 陣列，代表更新後的狀態。此函式會先對傳入的 `data` 進行 shallow copy，避免直接修改原陣列的引用。
+
+**範例**
+
+```typescript
+import { addOrUpdateSingleEventGroup } from 'ninesport-js-utils/events-utils';
+
+const initialData = [
+  {
+    leagueId: "league-2",
+    leagueLocaleName: "Spanish La Liga",
+    league: { id: "league-2", weight: 20 },
+    eventsCount: 1,
+    eventsHotCount: 0,
+    hasData: true,
+    events: [
+      {
+        fixture: { id: 'f2', isHot: false, leagueId: 'league-2', leagueLocaleName: 'Spanish La Liga', league: { id: 'league-2', weight: 20 } },
+        markets: []
+      }
+    ]
+  }
+];
+
+// 新增一個權重較高 (weight: 100) 的英超聯賽分組
+const newGroup = {
+  leagueId: "league-1",
+  leagueLocaleName: "English Premier League",
+  league: { id: "league-1", weight: 100 },
+  eventsCount: 1,
+  eventsHotCount: 1,
+  hasData: true,
+  events: [
+    {
+      fixture: { id: 'f1', isHot: true, leagueId: 'league-1', leagueLocaleName: 'English Premier League', league: { id: 'league-1', weight: 100 } },
+      markets: []
+    }
+  ]
+};
+
+const result = addOrUpdateSingleEventGroup(initialData, newGroup);
+// result 陣列長度為 2，且英超聯賽分組 (weight: 100) 會因為權重排序被排在最前面
+console.log(result[0].leagueId); // "league-1"
+console.log(result[1].leagueId); // "league-2"
+```
+
+---
+
 ## `toPrice` 函數
 
 `toPrice` 函數的主要功能是將一個代表賠率的字串（後端傳來的標準小數賠率Ratio）轉換為指定 `PriceType` 的賠率字串，以便在前端顯示。

@@ -1,4 +1,4 @@
-import { reduceEventSubscriptions, reduceEventSubscriptionsForSingleEvent } from "../src/events-utils"
+import { reduceEventSubscriptions, reduceEventSubscriptionsForSingleEvent, addOrUpdateSingleEventGroup } from "../src/events-utils"
 
 const initState = [
     {
@@ -795,3 +795,75 @@ test("test isPriceHigher - 新增的 bet（沒有前一版本）應保持 null",
     expect(singleNewBet!.id).toBe("B99")
     expect(singleNewBet!.isPriceHigher).toBeNull()
 })
+
+test("test addOrUpdateSingleEventGroup - 新增與更新", () => {
+    // 準備測試資料，遵守繁體中文註解規範
+    const league1 = { id: "L1", weight: 10 }
+    const league2 = { id: "L2", weight: 20 }
+    const league3 = { id: "L3", weight: 30 }
+
+    const fixture1 = { id: "F1", isHot: false, leagueId: "L1", leagueLocaleName: "League 1", league: league1 }
+    const fixture2 = { id: "F2", isHot: false, leagueId: "L2", leagueLocaleName: "League 2", league: league2 }
+    const fixture3 = { id: "F3", isHot: false, leagueId: "L3", leagueLocaleName: "League 3", league: league3 }
+
+    const group1 = {
+        leagueId: "L1",
+        leagueLocaleName: "League 1",
+        league: league1,
+        eventsCount: 1,
+        eventsHotCount: 0,
+        hasData: true,
+        events: [{ fixture: fixture1, markets: [] }],
+    }
+
+    const group2 = {
+        leagueId: "L2",
+        leagueLocaleName: "League 2",
+        league: league2,
+        eventsCount: 1,
+        eventsHotCount: 0,
+        hasData: true,
+        events: [{ fixture: fixture2, markets: [] }],
+    }
+
+    const initialData = [group2, group1] // 排序應該是 weight: 20 (L2), 10 (L1)
+
+    // 1. 測試新增不在裡面的 group3 (weight: 30)，新增後應該排在最前面 (30, 20, 10)
+    const group3 = {
+        leagueId: "L3",
+        leagueLocaleName: "League 3",
+        league: league3,
+        eventsCount: 1,
+        eventsHotCount: 0,
+        hasData: true,
+        events: [{ fixture: fixture3, markets: [] }],
+    }
+
+    let results = addOrUpdateSingleEventGroup(initialData, group3)
+    
+    expect(results.length).toBe(3)
+    // 應按 weight 降序排序: L3 (30) -> L2 (20) -> L1 (10)
+    expect(results[0].leagueId).toBe("L3")
+    expect(results[1].leagueId).toBe("L2")
+    expect(results[2].leagueId).toBe("L1")
+
+    // 2. 測試更新已存在的 group1 (L1)
+    const updatedGroup1 = {
+        ...group1,
+        eventsCount: 2,
+        events: [
+            { fixture: fixture1, markets: [] },
+            { fixture: { ...fixture1, id: "F1-2" }, markets: [] },
+        ],
+    }
+
+    results = addOrUpdateSingleEventGroup(results, updatedGroup1)
+    expect(results.length).toBe(3)
+    // 更新應不改變排序 (或是僅替換 existsIdx 位置的內容，所以依然是 L3 -> L2 -> L1)
+    expect(results[0].leagueId).toBe("L3")
+    expect(results[1].leagueId).toBe("L2")
+    expect(results[2].leagueId).toBe("L1")
+    expect(results[2].eventsCount).toBe(2)
+    expect(results[2].events.length).toBe(2)
+})
+
