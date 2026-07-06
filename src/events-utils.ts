@@ -192,7 +192,7 @@ function addEventInplace<F extends IFixture, M extends IMarket, L extends ILives
 
     // 沒找到league就新增league
     output.push({
-        leagueId: subscription.fixture.leagueId,
+        leagueId: subscription.fixture.league.id,
         leagueLocaleName: subscription.fixture.leagueLocaleName,
         league: subscription.fixture.league,
         eventsCount: 1,
