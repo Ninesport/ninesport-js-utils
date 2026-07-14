@@ -32,7 +32,7 @@ export interface ILivescore {
 export interface IEvent<F extends IFixture, M extends IMarket, L extends ILivescore> {
     fixture: F
     markets: M[]
-    livescore?: L | null
+    livescore?: L
 }
 
 enum SubscriptionMessageType {
@@ -56,9 +56,9 @@ export interface IEventsWithLeagueGroup<F extends IFixture, M extends IMarket, L
 export interface IEventSubscription<F extends IFixture, M extends IMarket, L extends ILivescore> {
     type: string
     fixtureId: string
-    fixture?: F | null
-    markets?: M[] | null
-    livescore?: L | null
+    fixture?: F
+    markets?: M[]
+    livescore?: L
 }
 
 function updateEventInplace<F extends IFixture, M extends IMarket, L extends ILivescore>(previous: IEvent<F, M, L>, newEvent: IEventSubscription<F, M, L>): void {
