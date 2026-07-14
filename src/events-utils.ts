@@ -46,7 +46,7 @@ enum SubscriptionMessageType {
 export interface IEventsWithLeagueGroup<F extends IFixture, M extends IMarket, L extends ILivescore> {
     leagueId: string
     leagueLocaleName: string
-    league: ILeague
+    league: F["league"]
     eventsCount: number
     eventsHotCount: number
     hasData: boolean
