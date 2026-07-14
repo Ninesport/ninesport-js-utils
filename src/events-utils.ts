@@ -9,7 +9,6 @@ export interface IFixture {
     id: string
     isHot: boolean
     startedAt?: string | Date | null
-    leagueId: string
     leagueLocaleName: string
     league: ILeague
 }
@@ -172,7 +171,7 @@ function addEventInplace<F extends IFixture, M extends IMarket, L extends ILives
     }
 
     // 有找到league就在league內新增event
-    const exists = output.find(el => el.leagueId === subscription.fixture?.leagueId)
+    const exists = output.find(el => el.leagueId === subscription.fixture?.league.id)
     if (exists) {
         if (!exists.hasData) {
             // 如果沒有data，代表這個group沒有展開，不需要更新他，否則一直新增下去，前端RAM會爆掉
