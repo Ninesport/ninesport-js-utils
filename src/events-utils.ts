@@ -1,39 +1,5 @@
 import Decimal from "decimal.js"
-
-export interface ILeague {
-    id: string
-    weight: number
-}
-
-export interface IFixture {
-    id: string
-    isHot: boolean
-    startedAt?: string | Date | null
-    leagueLocaleName: string
-    league: ILeague
-}
-
-export interface IBet {
-    id: string
-    isPriceHigher?: boolean | null
-    actualPrice: string
-}
-
-export interface IMarket {
-    id: string
-    marketType: number
-    bets: (IBet | null | undefined)[][]
-}
-
-export interface ILivescore {
-    id: string
-}
-
-export interface IEvent<F extends IFixture, M extends IMarket, L extends ILivescore> {
-    fixture: F
-    markets: M[]
-    livescore?: L
-}
+import { IBet, IEvent, IFixture, ILivescore, IMarket } from "./types"
 
 enum SubscriptionMessageType {
     reset = "reset",

@@ -14,6 +14,7 @@ const initState = [
             {
                 "markets": [
                     {
+                        "viewType": 1,
                         "marketTypeLocaleName": "1X2",
                         "mainLine": null,
                         "betOptionLocaleNames": [
@@ -43,6 +44,9 @@ const initState = [
                                     "suspensionReason": null,
                                     "participantId": "635",
                                     "settlementType": null,
+                                    "viewType": 1,
+                                    "canBet": true,
+                                    "isFromInplay": false,
                                 },
                             ],
                             [
@@ -68,6 +72,9 @@ const initState = [
                                     "suspensionReason": null,
                                     "participantId": null,
                                     "settlementType": null,
+                                    "viewType": 1,
+                                    "canBet": true,
+                                    "isFromInplay": false,
                                 },
                             ],
                             [
@@ -93,6 +100,9 @@ const initState = [
                                     "suspensionReason": null,
                                     "participantId": "636",
                                     "settlementType": null,
+                                    "viewType": 1,
+                                    "canBet": true,
+                                    "isFromInplay": false,
                                 },
                             ],
                         ],
@@ -102,6 +112,7 @@ const initState = [
                         "isHot": false,
                     },
                     {
+                        "viewType": 3,
                         "marketTypeLocaleName": "Asian Handicap",
                         "mainLine": "-2.0 (0-0)",
                         "betOptionLocaleNames": null,
@@ -129,6 +140,9 @@ const initState = [
                                     "suspensionReason": null,
                                     "participantId": "635",
                                     "settlementType": null,
+                                    "viewType": 3,
+                                    "canBet": true,
+                                    "isFromInplay": false,
                                 },
                             ],
                             [
@@ -154,6 +168,9 @@ const initState = [
                                     "suspensionReason": null,
                                     "participantId": "636",
                                     "settlementType": null,
+                                    "viewType": 3,
+                                    "canBet": true,
+                                    "isFromInplay": false,
                                 },
                             ],
                         ],
@@ -163,6 +180,7 @@ const initState = [
                         "isHot": false,
                     },
                     {
+                        "viewType": 1,
                         "marketTypeLocaleName": "Away Team to Score",
                         "mainLine": null,
                         "betOptionLocaleNames": [
@@ -193,6 +211,9 @@ const initState = [
                                     "suspensionReason": null,
                                     "participantId": null,
                                     "settlementType": null,
+                                    "viewType": 1,
+                                    "canBet": true,
+                                    "isFromInplay": false,
                                 },
                             ],
                             [
@@ -218,6 +239,9 @@ const initState = [
                                     "suspensionReason": null,
                                     "participantId": null,
                                     "settlementType": null,
+                                    "viewType": 1,
+                                    "canBet": true,
+                                    "isFromInplay": false,
                                 },
                             ],
                         ],
@@ -297,6 +321,7 @@ const addOrUpdateMarketsSubscription = {
     "markets":[{ 
         "id":"406012",
         "fixtureId":"32023",
+        "viewType":1,
         "marketType":1,
         "marketTypeLocaleName":"1X2",
         "isHot":false,
@@ -307,11 +332,12 @@ const addOrUpdateMarketsSubscription = {
                     "marketTypeLocaleName":"1X2","marketId":"406012","fixtureId":"32023","status":1,"statusLocaleName":"Open","line":null,"baseLine":null,
                     "actualPrice":"3.6694","suspensionReason":null,"suspensionReasonLocaleName":null,"participantId":"506",
                     "participantLocaleName":"Uladzislava Famina / Polina Skopintseva","settlementType":null,"settlementTypeLocaleName":null,
+                    "viewType":1,"canBet":true,"isFromInplay":false,
                     "isPriceHigher":null }],[{ "id":"2218560","name":"X","localeName":"平手","isOutright":false,"settledAt":null,"marketType":1,
                 "marketTypeLocaleName":"1X2","marketId":"406012","fixtureId":"32023","status":1,"statusLocaleName":"Open","line":null,
                 "baseLine":null,"actualPrice":"3.4332","suspensionReason":null,"suspensionReasonLocaleName":null,"participantId":null,
-                "participantLocaleName":null,"settlementType":null,"settlementTypeLocaleName":null,"isPriceHigher":null }],[
-                { "id":"2218562","name":"2","localeName":"King Coconut","isOutright":false,"settledAt":null,"marketType":1,"marketTypeLocaleName":"1X2","marketId":"406012","fixtureId":"32023","status":1,"statusLocaleName":"Open","line":null,"baseLine":null,"actualPrice":"2.2412","suspensionReason":null,"suspensionReasonLocaleName":null,"participantId":"740","participantLocaleName":"King Coconut","settlementType":null,"settlementTypeLocaleName":null,"isPriceHigher":null }]] }], 
+                "participantLocaleName":null,"settlementType":null,"settlementTypeLocaleName":null,"viewType":1,"canBet":true,"isFromInplay":false,"isPriceHigher":null }],[
+                { "id":"2218562","name":"2","localeName":"King Coconut","isOutright":false,"settledAt":null,"marketType":1,"marketTypeLocaleName":"1X2","marketId":"406012","fixtureId":"32023","status":1,"statusLocaleName":"Open","line":null,"baseLine":null,"actualPrice":"2.2412","suspensionReason":null,"suspensionReasonLocaleName":null,"participantId":"740","participantLocaleName":"King Coconut","settlementType":null,"settlementTypeLocaleName":null,"viewType":1,"canBet":true,"isFromInplay":false,"isPriceHigher":null }]] }], 
 }
 const deleteMarketsSubscription = {
     ...addOrUpdateMarketsSubscription,
@@ -537,30 +563,52 @@ function createIsPriceHigherTestData() {
                         leagueId: "L1",
                         leagueLocaleName: "Test League",
                         league: { id: "L1", weight: 1 },
+                        participants: [
+                            { id: "P1", localeName: "Team 1", position: 1 },
+                            { id: "P2", localeName: "Team 2", position: 2 },
+                        ],
                     },
                     markets: [
                         {
                             id: "M1",
+                            fixtureId: "F1",
+                            viewType: 1,
                             marketType: 1,
+                            marketTypeLocaleName: "1X2",
                             bets: [
                                 [
                                     {
                                         id: "B1",
+                                        name: "1",
+                                        localeName: "Team 1",
+                                        viewType: 1,
                                         actualPrice: "1.50",
+                                        canBet: true,
+                                        isFromInplay: false,
                                         isPriceHigher: null,
                                     },
                                 ],
                                 [
                                     {
                                         id: "B2",
+                                        name: "X",
+                                        localeName: "平手",
+                                        viewType: 1,
                                         actualPrice: "2.00",
+                                        canBet: true,
+                                        isFromInplay: false,
                                         isPriceHigher: null,
                                     },
                                 ],
                                 [
                                     {
                                         id: "B3",
+                                        name: "2",
+                                        localeName: "Team 2",
+                                        viewType: 1,
                                         actualPrice: "3.00",
+                                        canBet: true,
+                                        isFromInplay: false,
                                         isPriceHigher: null,
                                     },
                                 ],
@@ -592,11 +640,14 @@ test("test isPriceHigher - 價格上漲時應標記為 true", () => {
         markets: [
             {
                 id: "M1",
+                fixtureId: "F1",
+                viewType: 1,
                 marketType: 1,
+                marketTypeLocaleName: "1X2",
                 bets: [
-                    [{ id: "B1", actualPrice: "2.00", isPriceHigher: null }],
-                    [{ id: "B2", actualPrice: "2.00", isPriceHigher: null }],
-                    [{ id: "B3", actualPrice: "3.00", isPriceHigher: null }],
+                    [{ id: "B1", name: "1", localeName: "Team 1", viewType: 1, actualPrice: "2.00", canBet: true, isFromInplay: false, isPriceHigher: null }],
+                    [{ id: "B2", name: "X", localeName: "平手", viewType: 1, actualPrice: "2.00", canBet: true, isFromInplay: false, isPriceHigher: null }],
+                    [{ id: "B3", name: "2", localeName: "Team 2", viewType: 1, actualPrice: "3.00", canBet: true, isFromInplay: false, isPriceHigher: null }],
                 ],
             },
         ],
@@ -633,11 +684,14 @@ test("test isPriceHigher - 價格下跌時應標記為 false", () => {
         markets: [
             {
                 id: "M1",
+                fixtureId: "F1",
+                viewType: 1,
                 marketType: 1,
+                marketTypeLocaleName: "1X2",
                 bets: [
-                    [{ id: "B1", actualPrice: "1.20", isPriceHigher: null }],
-                    [{ id: "B2", actualPrice: "2.00", isPriceHigher: null }],
-                    [{ id: "B3", actualPrice: "3.00", isPriceHigher: null }],
+                    [{ id: "B1", name: "1", localeName: "Team 1", viewType: 1, actualPrice: "1.20", canBet: true, isFromInplay: false, isPriceHigher: null }],
+                    [{ id: "B2", name: "X", localeName: "平手", viewType: 1, actualPrice: "2.00", canBet: true, isFromInplay: false, isPriceHigher: null }],
+                    [{ id: "B3", name: "2", localeName: "Team 2", viewType: 1, actualPrice: "3.00", canBet: true, isFromInplay: false, isPriceHigher: null }],
                 ],
             },
         ],
@@ -674,11 +728,14 @@ test("test isPriceHigher - 價格不變時應保持 null", () => {
         markets: [
             {
                 id: "M1",
+                fixtureId: "F1",
+                viewType: 1,
                 marketType: 1,
+                marketTypeLocaleName: "1X2",
                 bets: [
-                    [{ id: "B1", actualPrice: "1.50", isPriceHigher: null }],
-                    [{ id: "B2", actualPrice: "2.00", isPriceHigher: null }],
-                    [{ id: "B3", actualPrice: "3.00", isPriceHigher: null }],
+                    [{ id: "B1", name: "1", localeName: "Team 1", viewType: 1, actualPrice: "1.50", canBet: true, isFromInplay: false, isPriceHigher: null }],
+                    [{ id: "B2", name: "X", localeName: "平手", viewType: 1, actualPrice: "2.00", canBet: true, isFromInplay: false, isPriceHigher: null }],
+                    [{ id: "B3", name: "2", localeName: "Team 2", viewType: 1, actualPrice: "3.00", canBet: true, isFromInplay: false, isPriceHigher: null }],
                 ],
             },
         ],
@@ -721,11 +778,14 @@ test("test isPriceHigher - 混合情境：同一 market 中有上漲、下跌、
         markets: [
             {
                 id: "M1",
+                fixtureId: "F1",
+                viewType: 1,
                 marketType: 1,
+                marketTypeLocaleName: "1X2",
                 bets: [
-                    [{ id: "B1", actualPrice: "2.00", isPriceHigher: null }],
-                    [{ id: "B2", actualPrice: "1.50", isPriceHigher: null }],
-                    [{ id: "B3", actualPrice: "3.00", isPriceHigher: null }],
+                    [{ id: "B1", name: "1", localeName: "Team 1", viewType: 1, actualPrice: "2.00", canBet: true, isFromInplay: false, isPriceHigher: null }],
+                    [{ id: "B2", name: "X", localeName: "平手", viewType: 1, actualPrice: "1.50", canBet: true, isFromInplay: false, isPriceHigher: null }],
+                    [{ id: "B3", name: "2", localeName: "Team 2", viewType: 1, actualPrice: "3.00", canBet: true, isFromInplay: false, isPriceHigher: null }],
                 ],
             },
         ],
@@ -766,12 +826,15 @@ test("test isPriceHigher - 新增的 bet（沒有前一版本）應保持 null",
         markets: [
             {
                 id: "M1",
+                fixtureId: "F1",
+                viewType: 1,
                 marketType: 1,
+                marketTypeLocaleName: "1X2",
                 bets: [
-                    [{ id: "B1", actualPrice: "1.50", isPriceHigher: null }],
-                    [{ id: "B2", actualPrice: "2.00", isPriceHigher: null }],
-                    [{ id: "B3", actualPrice: "3.00", isPriceHigher: null }],
-                    [{ id: "B99", actualPrice: "5.00", isPriceHigher: null }],
+                    [{ id: "B1", name: "1", localeName: "Team 1", viewType: 1, actualPrice: "1.50", canBet: true, isFromInplay: false, isPriceHigher: null }],
+                    [{ id: "B2", name: "X", localeName: "平手", viewType: 1, actualPrice: "2.00", canBet: true, isFromInplay: false, isPriceHigher: null }],
+                    [{ id: "B3", name: "2", localeName: "Team 2", viewType: 1, actualPrice: "3.00", canBet: true, isFromInplay: false, isPriceHigher: null }],
+                    [{ id: "B99", name: "B99", localeName: "B99", viewType: 1, actualPrice: "5.00", canBet: true, isFromInplay: false, isPriceHigher: null }],
                 ],
             },
         ],
@@ -802,9 +865,39 @@ test("test addOrUpdateSingleEventGroup - 新增與更新", () => {
     const league2 = { id: "L2", weight: 20 }
     const league3 = { id: "L3", weight: 30 }
 
-    const fixture1 = { id: "F1", isHot: false, leagueId: "L1", leagueLocaleName: "League 1", league: league1 }
-    const fixture2 = { id: "F2", isHot: false, leagueId: "L2", leagueLocaleName: "League 2", league: league2 }
-    const fixture3 = { id: "F3", isHot: false, leagueId: "L3", leagueLocaleName: "League 3", league: league3 }
+    const fixture1 = {
+        id: "F1",
+        isHot: false,
+        leagueId: "L1",
+        leagueLocaleName: "League 1",
+        league: league1,
+        participants: [
+            { id: "P1", localeName: "Team 1", position: 1 },
+            { id: "P2", localeName: "Team 2", position: 2 },
+        ],
+    }
+    const fixture2 = {
+        id: "F2",
+        isHot: false,
+        leagueId: "L2",
+        leagueLocaleName: "League 2",
+        league: league2,
+        participants: [
+            { id: "P3", localeName: "Team 3", position: 1 },
+            { id: "P4", localeName: "Team 4", position: 2 },
+        ],
+    }
+    const fixture3 = {
+        id: "F3",
+        isHot: false,
+        leagueId: "L3",
+        leagueLocaleName: "League 3",
+        league: league3,
+        participants: [
+            { id: "P5", localeName: "Team 5", position: 1 },
+            { id: "P6", localeName: "Team 6", position: 2 },
+        ],
+    }
 
     const group1 = {
         leagueId: "L1",

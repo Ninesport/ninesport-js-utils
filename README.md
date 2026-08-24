@@ -391,6 +391,178 @@ console.log(result[1].leagueId); // "league-2"
 
 ---
 
+### `translateTeamName`
+
+此函式單純針對 `"1"` 與 `"2"` 提取出 `fixture` 對應的 `participants.localeName`（`position === 1` 為主隊/參賽者1，`position === 2` 為客隊/參賽者2）。若傳入的名稱非 `"1"` 或 `"2"`，或是找不到對應的參賽者，則原樣回傳 `localeName`。
+
+**簽名**
+```typescript
+translateTeamName(localeName: string, fixture: IFixture): string
+```
+
+**參數**
+- `localeName` (`string`): 待翻譯的名稱或代號（例如 `"1"`、`"2"` 或一般隊名/選項文字）。
+- `fixture` (`IFixture`): 賽事資料物件，內含 `participants`（參賽者列表）。
+
+**回傳值**
+
+- `string`: 翻譯後的隊伍名稱。若為 `"1"` 則回傳 `position === 1` 的參賽者名稱；若為 `"2"` 則回傳 `position === 2` 的參賽者名稱；其餘情況回傳原始 `localeName`。
+
+**範例**
+
+```typescript
+import { translateTeamName } from 'ninesport-js-utils/transform';
+
+const fixture = {
+  id: 'f1',
+  isHot: true,
+  leagueLocaleName: '英格蘭超級聯賽',
+  league: { id: 'l1', weight: 100 },
+  participants: [
+    { id: 'p1', localeName: '兵工廠', position: 1 },
+    { id: 'p2', localeName: '切爾西', position: 2 }
+  ]
+};
+
+console.log(translateTeamName("1", fixture)); // "兵工廠"
+console.log(translateTeamName("2", fixture)); // "切爾西"
+console.log(translateTeamName("和局", fixture)); // "和局"
+```
+
+---
+
+### `transformBetName`
+
+當用戶對該 bet 下注時，會需要在 Bets Slip 顯示該 bet 的內容，這個內容的顯示同樣會由 `viewType` 決定要如何提取 `localeName`、`line`、`playerLocaleName` 來組成字串。若未傳入 `fixture`，則直接回傳 `bet.localeName`。
+
+**簽名**
+```typescript
+transformBetName(bet: IBet, fixture?: IFixture): string
+```
+
+**參數**
+- `bet` (`IBet`): 投注項目物件，包含 `viewType`、`localeName`、`line`、`playerLocaleName` 等資訊。
+- `fixture` (`IFixture`, 可選): 賽事資料物件。若未提供，則直接回傳 `bet.localeName`。
+
+**格式轉換規則 (`viewType`)**
+- `1`: 使用 `translateTeamName` 將 `"1"` / `"2"` 翻譯為隊伍名稱。
+- `2`: 直接回傳 `bet.localeName`。
+- `3`: 隊伍名稱加上盤口線，格式為 `${translateTeamName(bet.localeName)} (${bet.line})`。
+- `4`: 原始名稱加上盤口線，格式為 `${bet.localeName} (${bet.line})`。
+- `5`: 球員盤口，格式為 `${bet.playerLocaleName} ${bet.localeName} ${bet.line}`。
+- `6`: 複合盤口（如勝平負 & 大小球），拆解並組合成 `${subName} ${betName}`（例如 `"兵工廠 大 2.5"`）。
+- 其他: 回傳 `bet.localeName`。
+
+**回傳值**
+
+- `string`: 處理後用於 Bets Slip 顯示的投注項目名稱字串。
+
+**範例**
+
+```typescript
+import { transformBetName } from 'ninesport-js-utils/transform';
+
+const fixture = {
+  id: 'f1',
+  isHot: true,
+  leagueLocaleName: '英格蘭超級聯賽',
+  league: { id: 'l1', weight: 100 },
+  participants: [
+    { id: 'p1', localeName: '兵工廠', position: 1 },
+    { id: 'p2', localeName: '切爾西', position: 2 }
+  ]
+};
+
+// viewType 1: 隊伍名稱翻譯
+const bet1 = { id: 'b1', name: '1', localeName: '1', viewType: 1, actualPrice: '1.95', canBet: true, isFromInplay: false };
+console.log(transformBetName(bet1, fixture)); // "兵工廠"
+
+// viewType 3: 隊伍名稱 + 盤口線
+const bet3 = { id: 'b3', name: '1', localeName: '1', viewType: 3, line: '-0.5', actualPrice: '1.90', canBet: true, isFromInplay: false };
+console.log(transformBetName(bet3, fixture)); // "兵工廠 (-0.5)"
+
+// viewType 5: 球員盤口
+const bet5 = { id: 'b5', name: 'Goal', localeName: '進球', playerLocaleName: '薩卡', line: '>=1', viewType: 5, actualPrice: '2.50', canBet: true, isFromInplay: false };
+console.log(transformBetName(bet5, fixture)); // "薩卡 進球 >=1"
+```
+
+---
+
+### `transformMarket`
+
+此函式用於把後端傳來的盤口資料（`IMarket[]`）整理成 Figma 設計檔上的顯示格式（`MarketCardData[]`），以便 UI 元件進行呈現。同時會結合 `hostConfig`（`canInplayBet` / `canPrematchBet`）與盤口滾球屬性計算各個投注選項是否可以下注（`canBet`）。
+
+**簽名**
+```typescript
+transformMarket(markets: IMarket[], fixture: IFixture, hostConfig?: IHostConfig): MarketCardData[]
+```
+
+**參數**
+- `markets` (`IMarket[]`): 原始盤口資料陣列。
+- `fixture` (`IFixture`): 賽事資料物件，用於隊伍名稱翻譯。
+- `hostConfig` (`IHostConfig`, 可選): 平台設定物件，用於控制滾球（`canInplayBet`）與早盤（`canPrematchBet`）的下注權限。
+
+**回傳值**
+
+- `MarketCardData[]`: 轉換後的盤口卡片資料陣列，每個物件包含：
+  - `id` (`string`): 盤口 ID。
+  - `marketType` (`number`): 盤口類型代碼。
+  - `marketTypeLocaleName` (`string`): 盤口類型本地化名稱。
+  - `viewType` (`number`): 顯示版面類型（1 ~ 6）。
+  - `hasLine` (`boolean`): 該盤口是否包含盤口線（`line`）。
+  - `betsBlocks` (`BetsBlock[]`): 投注按鈕區塊資料，包含 `items`（二維按鈕陣列）、`columnNames`（欄位標題）或 `centerTopic`（置中主題，如球員名稱）。
+
+**範例**
+
+```typescript
+import { transformMarket } from 'ninesport-js-utils/transform';
+
+const fixture = {
+  id: 'f1',
+  isHot: true,
+  leagueLocaleName: '英格蘭超級聯賽',
+  league: { id: 'l1', weight: 100 },
+  participants: [
+    { id: 'p1', localeName: '兵工廠', position: 1 },
+    { id: 'p2', localeName: '切爾西', position: 2 }
+  ]
+};
+
+const markets = [
+  {
+    id: 'm1',
+    fixtureId: 'f1',
+    viewType: 1,
+    marketType: 1,
+    marketTypeLocaleName: '全場獨贏',
+    bets: [
+      [
+        { id: 'b1', name: '1', localeName: '1', viewType: 1, actualPrice: '1.95', canBet: true, isFromInplay: false, isPriceHigher: null },
+        { id: 'b2', name: 'X', localeName: '和局', viewType: 1, actualPrice: '3.40', canBet: true, isFromInplay: false, isPriceHigher: null },
+        { id: 'b3', name: '2', localeName: '2', viewType: 1, actualPrice: '3.80', canBet: true, isFromInplay: false, isPriceHigher: null }
+      ]
+    ]
+  }
+];
+
+const hostConfig = {
+  canInplayBet: true,
+  canPrematchBet: true
+};
+
+const cardDataList = transformMarket(markets, fixture, hostConfig);
+console.log(cardDataList[0].betsBlocks[0].items);
+// [
+//   [
+//     { id: 'b1', name: '兵工廠', odds: '1.95', canBet: true, ... },
+//     { id: 'b2', name: '和局', odds: '3.40', canBet: true, ... },
+//     { id: 'b3', name: '切爾西', odds: '3.80', canBet: true, ... }
+//   ]
+// ]
+```
+
+---
+
 ## `toPrice` 函數
 
 `toPrice` 函數的主要功能是將一個代表賠率的字串（後端傳來的標準小數賠率Ratio）轉換為指定 `PriceType` 的賠率字串，以便在前端顯示。
