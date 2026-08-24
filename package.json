@@ -1,6 +1,6 @@
 {
   "name": "ninesport-js-utils",
-  "version": "1.4.19",
+  "version": "1.4.20",
   "description": "Ninesport JS Utils",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -13,7 +13,7 @@
     "build": "tsc",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
-    "test-publish": "yarn test && yarn build && yarn publish --registry https://registry.npmjs.org"
+    "test-publish": "yarn test && yarn build && yarn publish"
   },
   "repository": {
     "type": "git",
@@ -59,6 +59,14 @@
     "./combination-bet-detail": {
       "import": "./dist/combination-bet-detail.js",
       "types": "./dist/combination-bet-detail.d.ts"
+    },
+    "./transform": {
+      "import": "./dist/transform.js",
+      "types": "./dist/transform.d.ts"
+    },
+    "./types": {
+      "import": "./dist/types.js",
+      "types": "./dist/types.d.ts"
     }
   }
 }
