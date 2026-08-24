@@ -21,24 +21,21 @@ export interface IFixture {
 
 export interface IBet {
     id: string;
-    name: string;
     localeName: string;
     viewType: number;
     playerLocaleName?: string | null;
     line?: string | null;
-    baseLine?: string | null;
     isMainLine?: boolean | null;
     isPriceHigher?: boolean | null;
     actualPrice: string;
     canBet: boolean;
-    participantId?: string | null;
+    // 此欄位暫時不會用來運算，但是預留給未來使用
     participantLocaleName?: string | null;
     isFromInplay: boolean;
 }
 
 export interface IMarket {
     id: string;
-    fixtureId: string;
     viewType: number;
     mainLine?: string | null;
     marketType: number;
@@ -62,7 +59,7 @@ export interface IHostConfig {
     canPrematchBet: boolean
 }
 
-export interface BetItem {
+export type BetItem = {
     // 該bet的ID (UUID)
     id: string
     // 該bet的顯示名稱
@@ -79,7 +76,7 @@ export interface BetItem {
     canBet: boolean
 }
 
-export interface BetsBlock {
+export type BetsBlock = {
     // 跟columnNames類似，差別在於centerTopic只會有一個值，顯示的位置跟columnNames一樣，但他是置中
     centerTopic?: string
     // 該BetsBlock的上面的column名稱，例如: "Over", "Under", 長度一定會跟betCards的長度一致，沒有就代表不需要顯示column
@@ -88,7 +85,7 @@ export interface BetsBlock {
     items: (BetItem | null)[][]
 }
 
-export interface MarketCardData  {
+export type MarketCardData = {
     id: string
     marketType: number
     // 市場類型翻譯
