@@ -108,3 +108,45 @@ describe("Math utility functions", () => {
     })
 })
 
+describe("calculateEquivalentOddsWithoutDiv 效能測試 (Benchmark)", () => {
+    // 預先產生基準賠率資料（長度 20）
+    const baseOdds = Array.from({ length: 20 }, () => new Decimal(1.5))
+    const maxBetOdds = new Decimal(10000000)
+
+    for (let n = 15; n <= 20; n++) {
+        // k 選擇 worst 的情況，也就是 odds.length / 2 (取整數 Math.floor(n / 2))
+        const kWorst = Math.floor(n / 2)
+        const totalCombinations = combinations(n, kWorst)
+
+        it(`odds 長度 = ${n}, k = ${kWorst} (最差情況，組合數: ${totalCombinations})`, () => {
+            const odds = baseOdds.slice(0, n)
+            const iterations = 10
+            const durations: number[] = []
+
+            let lastResult: [Decimal, boolean] | null = null
+            for (let i = 0; i < iterations; i++) {
+                const startTime = performance.now()
+                lastResult = calculateEquivalentOddsWithoutDiv(odds, maxBetOdds, kWorst)
+                const endTime = performance.now()
+                durations.push(endTime - startTime)
+            }
+
+            const avgDuration = durations.reduce((acc, cur) => acc + cur, 0) / iterations
+            const minDuration = Math.min(...durations)
+
+            console.log(
+                `[Benchmark] odds 長度: ${n}, k: ${kWorst}, 組合數: ${totalCombinations}, 平均耗時: ${avgDuration.toFixed(2)} ms (最佳: ${minDuration.toFixed(2)} ms, 執行 ${iterations} 次)`,
+            )
+
+            expect(lastResult).not.toBeNull()
+            if (lastResult) {
+                const [result, isOver] = lastResult
+                expect(result).toBeInstanceOf(Decimal)
+                expect(result.gt(0)).toBe(true)
+                expect(typeof isOver).toBe("boolean")
+            }
+        })
+    }
+})
+
+

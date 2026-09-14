@@ -26,35 +26,6 @@ export function combinations(n: number, k: number): number {
 }
 
 /**
- * A private recursive helper for `calculateEquivalentOddsWithoutDiv`.
- * It uses Depth-First Search (DFS) to find all combinations and sum their products.
- * @returns [Decimal, boolean] The sum of products for this recursive path and whether any combination exceeded max odds.
- */
-function dfsHelper(
-    odds: Decimal[],
-    maxBetOdds: Decimal,
-    k: number,
-    startIndex: number,
-    currentProduct: Decimal,
-    currentDepth: number,
-): [Decimal, boolean] {
-    if (currentDepth === k) {
-        return [currentProduct, currentProduct.gt(maxBetOdds)]
-    }
-
-    let sum = new Decimal(0)
-    let isOver = false
-    for (let i = startIndex; i < odds.length; i++) {
-        const [pathSum, pathIsOver] = dfsHelper(odds, maxBetOdds, k, i + 1, currentProduct.times(odds[i]), currentDepth + 1)
-        sum = sum.plus(pathSum)
-        if (pathIsOver) {
-            isOver = true
-        }
-    }
-    return [sum, isOver]
-}
-
-/**
  * Calculates the sum of products of all combinations of `k` odds selected from `n` odds,
  * without dividing by the total number of combinations.
  * This function requires the 'decimal.js' library for arbitrary-precision arithmetic.
@@ -72,6 +43,43 @@ export function calculateEquivalentOddsWithoutDiv(odds: Decimal[], maxBetOdds: D
         throw new Error(`The number of odds (${n}) exceeds the maximum allowed fold size (${maxFoldSize()}).`)
     }
 
-    // Start the DFS with an initial product of 1 and depth 0
-    return dfsHelper(odds, maxBetOdds, k, 0, new Decimal(1), 0)
+    // 取得前 k 大的賠率乘積，判斷是否有任何組合超過上限 maxBetOdds
+    const sortedOdds = [...odds].sort((a, b) => b.comparedTo(a))
+    let maxProduct = new Decimal(1)
+    for (let i = 0; i < k; i++) {
+        maxProduct = maxProduct.times(sortedOdds[i])
+    }
+    const isOver = maxProduct.gt(maxBetOdds)
+
+    // 特例優化：k = 1 時為所有賠率之和
+    if (k === 1) {
+        let sum = new Decimal(0)
+        for (const odd of odds) {
+            sum = sum.plus(odd)
+        }
+        return [sum, isOver]
+    }
+
+    // 特例優化：k = n 時為所有賠率之乘積
+    if (k === n) {
+        return [maxProduct, isOver]
+    }
+
+    // 動態規劃 (DP) 計算初等對稱多項式 e_k(odds)
+    const dp: Decimal[] = Array.from({ length: k + 1 }, (_, idx) => (idx === 0 ? new Decimal(1) : new Decimal(0)))
+
+    for (let i = 0; i < n; i++) {
+        const odd = odds[i]
+        const maxJ = Math.min(i + 1, k)
+        for (let j = maxJ; j >= 1; j--) {
+            if (j === 1) {
+                dp[1] = dp[1].plus(odd)
+            } else {
+                dp[j] = dp[j].plus(dp[j - 1].times(odd))
+            }
+        }
+    }
+
+    return [dp[k], isOver]
 }
+
