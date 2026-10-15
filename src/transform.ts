@@ -6,6 +6,26 @@ function transpose<T>(matrix: T[][]): T[][] {
     return output
 }
 
+// 把 home team / away team / home / away 這些關鍵字換成 fixture participants 的 localeName
+export function transformMarketTypeLocaleName(localeName: string, fixture: IFixture): string {
+    if (!localeName || !fixture?.participants) {
+        return localeName
+    }
+
+    const homeTeam = fixture.participants.find(p => p.position === 1)?.localeName
+    const awayTeam = fixture.participants.find(p => p.position === 2)?.localeName
+
+    return localeName.replace(/\b(home(?:\s+team)?|away(?:\s+team)?)\b/gi, (match) => {
+        if (/^home/i.test(match)) {
+            return homeTeam ?? match
+        }
+        if (/^away/i.test(match)) {
+            return awayTeam ?? match
+        }
+        return match
+    })
+}
+
 
 function transformBetNameAndSubName(bet: IBet, fixture: IFixture): {betName: string, subName: string} {
     const output = { betName: "", subName: "" }
@@ -84,7 +104,7 @@ export function transformMarket(markets: IMarket[], fixture: IFixture, hostConfi
         const output: MarketCardData = {
             id: market.id,
             marketType: market.marketType,
-            marketTypeLocaleName: market.marketTypeLocaleName,
+            marketTypeLocaleName: transformMarketTypeLocaleName(market.marketTypeLocaleName, fixture),
             viewType: market.viewType,
             hasLine: !!market.mainLine || !!(market.bets.find(row => row.find(b => !!b?.line))),
             betsBlocks: [],

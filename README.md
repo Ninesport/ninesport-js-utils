@@ -391,6 +391,45 @@ console.log(result[1].leagueId); // "league-2"
 
 ---
 
+### `transformMarketTypeLocaleName`
+
+將盤口類型名稱中的 `Home Team` / `Away Team` / `Home` / `Away` 關鍵字（不分大小寫）替換為賽事參賽者（`fixture.participants`）的本地化隊名（`position === 1` 為主隊，`position === 2` 為客隊）。具備單詞邊界保護，避免誤替換如 `Takeaway` 等其他單詞。
+
+**簽名**
+```typescript
+transformMarketTypeLocaleName(localeName: string, fixture: IFixture): string
+```
+
+**參數**
+- `localeName` (`string`): 盤口類型本地化名稱（例如 `"Home Team to Score"`、`"Away to Win"`、`"Home / Away"`）。
+- `fixture` (`IFixture`): 賽事資料物件，內含 `participants`（參賽者列表）。
+
+**回傳值**
+- `string`: 替換後的盤口名稱。若未找到對應參賽者或傳入空值則保留原始文字。
+
+**範例**
+
+```typescript
+import { transformMarketTypeLocaleName } from 'ninesport-js-utils/transform';
+
+const fixture = {
+  id: 'f1',
+  isHot: true,
+  leagueLocaleName: '英格蘭超級聯賽',
+  league: { id: 'l1', weight: 100 },
+  participants: [
+    { id: 'p1', localeName: '兵工廠', position: 1 },
+    { id: 'p2', localeName: '切爾西', position: 2 }
+  ]
+};
+
+console.log(transformMarketTypeLocaleName("Home Team to Score", fixture)); // "兵工廠 to Score"
+console.log(transformMarketTypeLocaleName("away to win", fixture));        // "切爾西 to win"
+console.log(transformMarketTypeLocaleName("Home / Away", fixture));        // "兵工廠 / 切爾西"
+```
+
+---
+
 ### `translateTeamName`
 
 此函式單純針對 `"1"` 與 `"2"` 提取出 `fixture` 對應的 `participants.localeName`（`position === 1` 為主隊/參賽者1，`position === 2` 為客隊/參賽者2）。若傳入的名稱非 `"1"` 或 `"2"`，或是找不到對應的參賽者，則原樣回傳 `localeName`。
