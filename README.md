@@ -391,26 +391,26 @@ console.log(result[1].leagueId); // "league-2"
 
 ---
 
-### `transformMarketTypeLocaleName`
+### `transformHomeAwayLocaleName`
 
-將盤口類型名稱中的 `Home Team` / `Away Team` / `Home` / `Away` 關鍵字（不分大小寫）替換為賽事參賽者（`fixture.participants`）的本地化隊名（`position === 1` 為主隊，`position === 2` 為客隊）。具備單詞邊界保護，避免誤替換如 `Takeaway` 等其他單詞。
+將字串中的 `{home team}` / `{away team}` / `{home}` / `{away}` 關鍵字（需由大括號 `{}` 包裹，不分大小寫，亦容許括號內前後空格）替換為賽事參賽者（`fixture.participants`）的本地化隊名（`position === 1` 為主隊，`position === 2` 為客隊）。具備 `{}` 大括號保護，避免誤替換如未加括號的 `Home Team to Score`、`Takeaway` 等一般字串。
 
 **簽名**
 ```typescript
-transformMarketTypeLocaleName(localeName: string, fixture: IFixture): string
+transformHomeAwayLocaleName(localeName: string, fixture: IFixture): string
 ```
 
 **參數**
-- `localeName` (`string`): 盤口類型本地化名稱（例如 `"Home Team to Score"`、`"Away to Win"`、`"Home / Away"`）。
+- `localeName` (`string`): 待替換的本地化名稱（例如 `"{Home Team} to Score"`、`"{away} to win"`、`"{Home} / {Away}"`）。
 - `fixture` (`IFixture`): 賽事資料物件，內含 `participants`（參賽者列表）。
 
 **回傳值**
-- `string`: 替換後的盤口名稱。若未找到對應參賽者或傳入空值則保留原始文字。
+- `string`: 替換後的名稱。若未找到對應參賽者或傳入空值則保留原始文字。
 
 **範例**
 
 ```typescript
-import { transformMarketTypeLocaleName } from 'ninesport-js-utils/transform';
+import { transformHomeAwayLocaleName } from 'ninesport-js-utils/transform';
 
 const fixture = {
   id: 'f1',
@@ -423,9 +423,10 @@ const fixture = {
   ]
 };
 
-console.log(transformMarketTypeLocaleName("Home Team to Score", fixture)); // "兵工廠 to Score"
-console.log(transformMarketTypeLocaleName("away to win", fixture));        // "切爾西 to win"
-console.log(transformMarketTypeLocaleName("Home / Away", fixture));        // "兵工廠 / 切爾西"
+console.log(transformHomeAwayLocaleName("{Home Team} to Score", fixture)); // "兵工廠 to Score"
+console.log(transformHomeAwayLocaleName("{away} to win", fixture));        // "切爾西 to win"
+console.log(transformHomeAwayLocaleName("{Home} / {Away}", fixture));      // "兵工廠 / 切爾西"
+console.log(transformHomeAwayLocaleName("Home Team to Score", fixture));   // "Home Team to Score" (無 {} 保護不被替換)
 ```
 
 ---
@@ -472,7 +473,7 @@ console.log(translateTeamName("和局", fixture)); // "和局"
 
 ### `transformBetName`
 
-當用戶對該 bet 下注時，會需要在 Bets Slip 顯示該 bet 的內容，這個內容的顯示同樣會由 `viewType` 決定要如何提取 `localeName`、`line`、`playerLocaleName` 來組成字串。若未傳入 `fixture`，則直接回傳 `bet.localeName`。
+當用戶對該 bet 下注時，會需要在 Bets Slip 顯示該 bet 的內容，這個內容的顯示同樣會由 `viewType` 決定要如何提取 `localeName`、`line`、`playerLocaleName` 來組成字串。若未傳入 `fixture`，則直接回傳 `bet.localeName`。當傳入 `fixture` 時，處理結果會自動經過 `transformHomeAwayLocaleName` 轉換，將 `{home}` / `{away}` / `{home team}` / `{away team}` 關鍵字替換為對應參賽者隊名。
 
 **簽名**
 ```typescript
@@ -491,6 +492,8 @@ transformBetName(bet: IBet, fixture?: IFixture): string
 - `5`: 球員盤口，格式為 `${bet.playerLocaleName} ${bet.localeName} ${bet.line}`。
 - `6`: 複合盤口（如勝平負 & 大小球），拆解並組合成 `${subName} ${betName}`（例如 `"兵工廠 大 2.5"`）。
 - 其他: 回傳 `bet.localeName`。
+
+> 註：所有回傳結果皆會自動通過 `transformHomeAwayLocaleName` 進行 `{home}` / `{away}` 關鍵字替換。
 
 **回傳值**
 
@@ -523,13 +526,17 @@ console.log(transformBetName(bet3, fixture)); // "兵工廠 (-0.5)"
 // viewType 5: 球員盤口
 const bet5 = { id: 'b5', name: 'Goal', localeName: '進球', playerLocaleName: '薩卡', line: '>=1', viewType: 5, actualPrice: '2.50', canBet: true, isFromInplay: false };
 console.log(transformBetName(bet5, fixture)); // "薩卡 進球 >=1"
+
+// 包含大括號關鍵字替換
+const betHome = { id: 'b6', name: '{Home} 獨贏', localeName: '{Home} 獨贏', viewType: 2, actualPrice: '2.10', canBet: true, isFromInplay: false };
+console.log(transformBetName(betHome, fixture)); // "兵工廠 獨贏"
 ```
 
 ---
 
 ### `transformMarket`
 
-此函式用於把後端傳來的盤口資料（`IMarket[]`）整理成 Figma 設計檔上的顯示格式（`MarketCardData[]`），以便 UI 元件進行呈現。同時會結合 `hostConfig`（`canInplayBet` / `canPrematchBet`）與盤口滾球屬性計算各個投注選項是否可以下注（`canBet`）。
+此函式用於把後端傳來的盤口資料（`IMarket[]`）整理成 Figma 設計檔上的顯示格式（`MarketCardData[]`），以便 UI 元件進行呈現。同時會結合 `hostConfig`（`canInplayBet` / `canPrematchBet`）與盤口滾球屬性計算各個投注選項是否可以下注（`canBet`），並自動透過 `transformHomeAwayLocaleName` 將盤口名稱（`marketTypeLocaleName`）、按鈕項目名稱（`bet.name` / `bet.subName`）、欄位標題（`columnNames`）及置中主題（`centerTopic`）中的 `{home}` / `{away}` 關鍵字替換為隊名。
 
 **簽名**
 ```typescript

@@ -13,7 +13,7 @@
     "build": "tsc",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
-    "test-publish": "yarn test && yarn build && npm publish"
+    "test-publish": "yarn test && yarn build && yarn publish"
   },
   "repository": {
     "type": "git",

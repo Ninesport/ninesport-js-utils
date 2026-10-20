@@ -6,8 +6,8 @@ function transpose<T>(matrix: T[][]): T[][] {
     return output
 }
 
-// 把 home team / away team / home / away 這些關鍵字換成 fixture participants 的 localeName
-export function transformMarketTypeLocaleName(localeName: string, fixture: IFixture): string {
+// 把 `{home team}` / `{away team}` / `{home}` / `{away}` 這些關鍵字換成 fixture participants 的 localeName
+export function transformHomeAwayLocaleName(localeName: string, fixture: IFixture): string {
     if (!localeName || !fixture?.participants) {
         return localeName
     }
@@ -15,11 +15,11 @@ export function transformMarketTypeLocaleName(localeName: string, fixture: IFixt
     const homeTeam = fixture.participants.find(p => p.position === 1)?.localeName
     const awayTeam = fixture.participants.find(p => p.position === 2)?.localeName
 
-    return localeName.replace(/\b(home(?:\s+team)?|away(?:\s+team)?)\b/gi, (match) => {
-        if (/^home/i.test(match)) {
+    return localeName.replace(/\{\s*(home(?:\s+team)?|away(?:\s+team)?)\s*\}/gi, (match, keyword) => {
+        if (/^home/i.test(keyword)) {
             return homeTeam ?? match
         }
-        if (/^away/i.test(match)) {
+        if (/^away/i.test(keyword)) {
             return awayTeam ?? match
         }
         return match
@@ -50,36 +50,46 @@ function transformBetNameAndSubName(bet: IBet, fixture: IFixture): {betName: str
         output.subName = teams.join(" / ")
     }
 
+    output.betName = transformHomeAwayLocaleName(output.betName, fixture)
+    output.subName = transformHomeAwayLocaleName(output.subName, fixture)
     return output
 }
 
 export function transformBetName(bet: IBet, fixture?: IFixture): string {
+    let result = bet.localeName
     if (!fixture) {
-        return bet.localeName
+        return result
     }
     switch (bet.viewType) {
     case 1:
-        return translateTeamName(bet.localeName, fixture)
+        result = translateTeamName(bet.localeName, fixture)
+        break
     case 2:
-        return bet.localeName
+        result = bet.localeName
+        break
     case 3:
-        return `${translateTeamName(bet.localeName || "", fixture)} (${bet.line})`
+        result = `${translateTeamName(bet.localeName || "", fixture)} (${bet.line})`
+        break
     case 4:
-        return `${bet.localeName} (${bet.line})`
+        result = `${bet.localeName} (${bet.line})`
+        break
     case 5:
-        return `${bet.playerLocaleName} ${bet.localeName} ${bet.line || ""}`.trim()
+        result = `${bet.playerLocaleName} ${bet.localeName} ${bet.line || ""}`.trim()
+        break
     case 6:
     {
-        const result = transformBetNameAndSubName(bet, fixture)
-        return `${result.subName} ${result.betName}`
+        const { betName, subName } = transformBetNameAndSubName(bet, fixture)
+        result = `${subName} ${betName}`
+        break
     }
-        
+    default:
+        break
     }
-
-    return bet.localeName
+    result = transformHomeAwayLocaleName(result, fixture)
+    return result
 }
 
-
+// 只替換`1`, `2`
 export function translateTeamName(localeName: string, fixture: IFixture): string {
     switch (localeName) {
     case "1":
@@ -104,7 +114,7 @@ export function transformMarket(markets: IMarket[], fixture: IFixture, hostConfi
         const output: MarketCardData = {
             id: market.id,
             marketType: market.marketType,
-            marketTypeLocaleName: transformMarketTypeLocaleName(market.marketTypeLocaleName, fixture),
+            marketTypeLocaleName: transformHomeAwayLocaleName(market.marketTypeLocaleName, fixture),
             viewType: market.viewType,
             hasLine: !!market.mainLine || !!(market.bets.find(row => row.find(b => !!b?.line))),
             betsBlocks: [],
@@ -275,6 +285,26 @@ export function transformMarket(markets: IMarket[], fixture: IFixture, hostConfi
             break 
         }
         }
+
+        output.betsBlocks.forEach(block => {
+            if (block.columnNames) {
+                block.columnNames = block.columnNames.map(name => transformHomeAwayLocaleName(name, fixture))
+            }
+            if (block.centerTopic) {
+                block.centerTopic = transformHomeAwayLocaleName(block.centerTopic, fixture)
+            }
+            block.items.forEach(row => {
+                row.forEach(bet => {
+                    if (!bet) {
+                        return
+                    }
+                    bet.name = transformHomeAwayLocaleName(bet.name, fixture)
+                    if (bet.subName) {
+                        bet.subName = transformHomeAwayLocaleName(bet.subName, fixture)
+                    }
+                })
+            })
+        })
 
         return output
     })
